@@ -22,8 +22,10 @@ containing either `payload` or `error: { "key": "<message key>" }`.
 | `entities.list` | `{ "domains": string[] \| null, "query": string \| null, "limit": number }` | `{ "entities": [{ "entityId", "friendlyName", "domain", "state" }] }`. Matches on entity ID and friendly name, case-insensitive (FR-013) |
 | `entity.capabilities` | `{ "entityId": string }` | `{ "attributes": [{ "id", "unit", "min", "max", "defaultFine", "defaultCoarse" }], "longPressEligible": bool }` (FR-022) |
 
-The test validates the URL and token on a temporary connection. Only after success does the PI
-call `setGlobalSettings`. The token is **never** included in any reply.
+The test validates the URL and token on a temporary connection. After success the PI calls
+`setGlobalSettings`. After `error.unreachable` or `error.timeout` the PI offers *Save anyway*
+(HA may just be offline); after `error.auth` or `error.invalidUrl` it does not save. The token
+is **never** included in any reply.
 
 ## Pushes (main service → PI, unsolicited)
 

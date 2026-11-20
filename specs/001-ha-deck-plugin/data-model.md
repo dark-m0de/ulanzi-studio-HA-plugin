@@ -162,22 +162,47 @@ At most one exists at a time (FR-035).
 
 `onRun` is ignored for keys with a detector (R-11).
 
-## 8. DialController (runtime, per dial context)
+## 8. EntityControl (runtime, one per entity, shared)
 
-Converts detents into values:
+Holds the state that must be shared by **every** control acting on the same entity: fixed HA
+Dials (whatever attribute they control), all Dynamic Dials during edit mode, and the edit-mode
+key display. Kept in an `EntityControlRegistry` keyed by `entityId`, created on first use and
+dropped when no controller references it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `entityId` | string | registry key |
+| `values` | Map<attributeId, { optimisticValue, optimisticUntil }> | optimistic state **per attribute**; `optimisticUntil = lastInput + 1500 ms` |
+| `throttle` | Throttle | **one** 200 ms window for the whole entity |
+| `pending` | Map<attributeId, ServiceCall> | latest not-yet-sent call per attribute |
+| `listeners` | Set | controllers and key renderers to notify on change |
+
+**Rules**:
+- An attribute's optimistic value takes precedence over HA updates until its
+  `optimisticUntil`, or until HA reports a value equal to it.
+- All service calls for the entity go through its single throttle (FR-024): the first call is
+  sent immediately, then at most one call per 200 ms window. Only the latest call per attribute
+  is kept in `pending`. If several attributes are pending, they are sent one per window in the
+  order of their first change. The latest value of every attribute is always delivered.
+  Several dials on the same entity, even on different attributes (e.g. brightness and colour
+  temperature), therefore never exceed 5 calls/s together.
+- Every change notifies all listeners, so all dial displays and the edit-mode key show the same
+  value (Story 4 scenario 2, FR-032a).
+- When the connection leaves `connected`, `cancelPending()` on the registry discards all
+  pending throttled calls and optimistic values. Rotations while disconnected send nothing and
+  are not replayed after reconnect; the displays show the disconnected style.
+
+## 8a. DialController (runtime, per dial context)
+
+Converts detents into values and delegates state to the shared `EntityControl`:
 - `rotateEvent` `left`/`right` → ±`stepFine`.
 - `hold-left`/`hold-right` → ±`stepCoarse`.
-- Starting point: `optimisticValue` if it is still valid, else `attribute.read(entity)`. If the
-  entity is off and the user turns right, the start value is `min` (FR-028).
+- Starting point: the `EntityControl` optimistic value if it is still valid, else
+  `attribute.read(entity)`. If the entity is off and the user turns right, the start value is
+  `min` (FR-028).
 - If the result is below `min` and `offAtMin` is set, a turn-off call is sent.
-
-Calls are throttled per entity (200 ms window: leading call, then at most one per window, plus
-a trailing call with the latest value). The optimistic value takes precedence until
-`optimisticUntil = lastInput + 1500 ms` or until HA reports the target value.
-
-When the connection leaves `connected`, `cancelPending()` discards any pending throttled call
-and the optimistic value. Rotations while disconnected send nothing and are not replayed after
-reconnect; the display shows the disconnected style.
+- A Dynamic Dial rebinds its controller to the session's `EntityControl` whenever the edit
+  session starts or switches entity.
 
 ## 9. ServiceCall (value object)
 
@@ -204,4 +229,5 @@ HAConnection 1 ──feeds──► 1 EntityStore 1 ──► * EntityState
 EntityState  * ◄──bound── * KeyBinding / DialBinding(fixed)
 DialBinding(dynamic) * ──registered in──► 1 EditSession broker ──(0..1 active)──► EntityState
 ControllableAttribute (registry) ◄──uses── DialController, EditSession
+DialController * ──shares──► 1 EntityControl (per entity) ◄──reads── edit-mode key
 ```

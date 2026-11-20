@@ -32,6 +32,8 @@ has a default decision, so planning is not blocked.
 
 - **Decision**: `esbuild` (MIT) as the only dev dependency. Output: `platform: 'node'`,
   `target: 'node20.12'`, `format: 'esm'`, single file.
+  The optional native add-ons of `ws` (`bufferutil`, `utf-8-validate`) are marked
+  `external`; `ws` falls back to its pure-JS implementation, so nothing native is shipped.
 - **Rationale**: One small binary, near-zero config, fast. Webpack (used by the demo) is heavier
   for no benefit here.
 - **Alternatives considered**: webpack (heavier), rollup (needs plugins for CJS deps), no

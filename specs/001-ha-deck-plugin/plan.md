@@ -123,8 +123,9 @@ src/
 │   ├── attributes/          # controllable attributes: read/step/clamp/toServiceCall
 │   │   ├── index.js         # registry + supportedAttributes(entity)
 │   │   ├── light.js  media-player.js  climate.js  cover.js  fan.js  number.js
-│   ├── dial-controller.js   # detent → optimistic value → throttled call; stale-update guard
-│   ├── throttle.js          # per-entity leading+trailing throttle (200 ms)
+│   ├── entity-control.js    # shared per entity: one throttle, optimistic value per attribute
+│   ├── dial-controller.js   # detent → value via shared EntityControl; stale-update guard
+│   ├── throttle.js          # leading+trailing throttle (200 ms window)
 │   ├── long-press.js        # press detector (threshold, fires while held)
 │   ├── edit-session.js      # single edit session, timeout, switch, end reasons
 │   ├── press-actions.js     # domain-dependent toggle/play-pause/on-off

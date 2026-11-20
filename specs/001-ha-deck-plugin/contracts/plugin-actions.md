@@ -19,12 +19,17 @@ those documented in the UlanziDeckPlugin-SDK (`common-node` / `common-html`).
 
 | Action | UUID suffix | `Controllers` | `Devices` | `Encoder.layout` | Property Inspector |
 |---|---|---|---|---|---|
-| HA Toggle | `.toggle` | `["Keypad"]` | all | – | `property-inspector/toggle.html` |
-| HA Dial | `.dial` | `["Encoder"]` | encoder devices | `$UA1` | `property-inspector/dial.html` |
-| HA Dynamic Dial | `.dynamicdial` | `["Encoder"]` | encoder devices | `$UA1` | `property-inspector/dynamic-dial.html` |
-| HA Trigger (scene / script / automation) | `.scene` | `["Keypad"]` | all | – | `property-inspector/scene.html` |
-| HA Sensor | `.sensor` | `["Keypad"]` | all | – | `property-inspector/sensor.html` |
-| HA Service Call | `.service` | `["Keypad"]` | all | – | `property-inspector/service.html` |
+| HA Toggle | `.toggle` | `["Keypad"]` | `[]` | – | `property-inspector/toggle.html` |
+| HA Dial | `.dial` | `["Encoder"]` | `[]` | `$UA1` | `property-inspector/dial.html` |
+| HA Dynamic Dial | `.dynamicdial` | `["Encoder"]` | `[]` | `$UA1` | `property-inspector/dynamic-dial.html` |
+| HA Trigger (scene / script / automation) | `.scene` | `["Keypad"]` | `[]` | – | `property-inspector/scene.html` |
+| HA Sensor | `.sensor` | `["Keypad"]` | `[]` | – | `property-inspector/sensor.html` |
+| HA Service Call | `.service` | `["Keypad"]` | `[]` | – | `property-inspector/service.html` |
+
+`"Devices": []` means "all devices" (SDK default). Restricting the dial actions to encoder
+hardware is done by `"Controllers": ["Encoder"]`: Ulanzi Studio only lets them be placed on
+encoder slots, so key-only devices (e.g. D200) cannot receive them. No device list has to be
+maintained when Ulanzi releases new models.
 
 All actions: `SupportedInMultiActions: false` and `DisableAutomaticStates: true`. The plugin
 renders every icon itself.

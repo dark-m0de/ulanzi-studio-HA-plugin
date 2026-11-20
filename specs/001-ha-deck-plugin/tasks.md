@@ -38,7 +38,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 - [ ] T006 [P] Vendor UlanziTechnology/plugin-common-html into `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/` (only the files the Property Inspector needs) and record the source commit and license in `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/SOURCE.md`
 - [ ] T007 Create `plugin/com.ulanzi.hadeck.ulanziPlugin/manifest.json` exactly as in [contracts/plugin-actions.md](contracts/plugin-actions.md):
   - top-level fields `UUID com.ulanzi.ulanzistudio.hadeck`, `CodePath dist/app.js`, `Type JavaScript`, `Software.MinVersion 3.3.0`, `OS`, `Category`, `Inspect --inspect=127.0.0.1:9231`
-  - all six actions with their UUIDs, `Controllers`, `Encoder.layout "$UA1"` for `.dial`/`.dynamicdial`, `PropertyInspectorPath`, `SupportedInMultiActions: false`, `DisableAutomaticStates: true`, and a single default state image each
+  - all six actions with their UUIDs, `Controllers`, `"Devices": []`, `Encoder.layout "$UA1"` for `.dial`/`.dynamicdial`, `PropertyInspectorPath`, `SupportedInMultiActions: false`, `DisableAutomaticStates: true`, and a single default state image each
 - [ ] T008 [P] Create `plugin/com.ulanzi.hadeck.ulanziPlugin/en.json` and `plugin/com.ulanzi.hadeck.ulanziPlugin/de_DE.json` with `Name`, `Description`, an `Actions[]` array (index-aligned with the manifest: Name, Tooltip) and an empty `Localization` object (research R-15)
 - [ ] T009 [P] Design and add the plugin, category and per-action icons as own SVGs in `plugin/com.ulanzi.hadeck.ulanziPlugin/resources/` (`plugin.svg`, `category.svg`, `toggle.svg`, `dial.svg`, `dynamicdial.svg`, `scene.svg`, `sensor.svg`, `service.svg`). Do not reproduce the Home Assistant logo (constitution: Licensing & Code Provenance).
 - [ ] T010 [P] Update `NOTICE` in the repository root: list `ulanzideck-api` / plugin-common-node (Apache-2.0, UlanziTechnology), plugin-common-html (Apache-2.0, UlanziTechnology) and `ws` (MIT, Einar Otto Stangvik and contributors), with source URLs, and carry over any NOTICE content they ship
@@ -76,6 +76,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - pending requests rejected on close
   - missing `pong` within 10 s → reconnect
   - server restart → reconnect, states reloaded, resubscribed
+  - with a recording logger at `info` level, the whole run logs no entity IDs, no state values and no token; at `debug` level entity IDs may appear (Principle V)
 - [ ] T018 [P] Write `tests/unit/domain/entity-store.test.js`: full load, `changed(entityId)` notifications per subscriber, removal (`new_state: null` → not found), unavailable detection (`unavailable`/`unknown`/missing), friendly-name fallback to the object id
 - [ ] T019 [P] Write `tests/unit/domain/attributes.test.js` for every entry in the mapping table of [contracts/ha-websocket.md](contracts/ha-websocket.md), using the fixtures from T014: `isSupported`, `read` (brightness 102 → 40 %, off → `null`), `bounds`, `defaultSteps`, `unit`, clamping and step rounding, `toServiceCall` (including `volume_level` scaling and `offAtMin` turn-off calls), and `supportedAttributes(entity)` (FR-021, FR-022, FR-025)
 - [ ] T020 [P] Write `tests/unit/domain/i18n.test.js`: lookup by key from a locale `Localization` object, fallback to `en`, then to the key itself; `{placeholder}` interpolation; language selection from codes like `de`, `de_DE`, `en`
@@ -86,6 +87,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - global settings configure and connect the client
   - `onAdd`/`onClear` create and dispose action instances through the action registry
   - an exception thrown inside one action handler is logged and does not affect other actions (Principle IV failure isolation)
+  - `logMessage` calls at `info`/`warn`/`error` level contain no entity IDs, state values or token (Principle V)
 
 ### Implementation
 
@@ -148,6 +150,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - *Test connection* button showing the result message
   - status line driven by `connection.status`/`connection.changed`
   - on test success: `$UD.setGlobalSettings({ haUrl, haToken })`
+  - on `error.unreachable` or `error.timeout` (HA may just be offline): show a *Save anyway* button that saves via `setGlobalSettings`; the main service then connects in the background and the status line shows the result. Not offered for `error.auth` or `error.invalidUrl`.
 - [ ] T041 [US1] Create `plugin/…/property-inspector/toggle.html` containing the shared connection block (the entity fields follow in US2), loading `libs/common-html` and `shared.js`
 - [ ] T042 [P] [US1] Add the connection-related keys (`pi.connection.*`, `status.connected`, `status.disconnected`, `error.auth`, `error.unreachable`, `error.timeout`, `error.invalidUrl`) to `Localization` in `plugin/…/en.json` and `plugin/…/de_DE.json`
 
@@ -179,7 +182,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - `onAdd` renders the current state
   - keydown+keyup sends `<domain>.toggle`; `onRun` is ignored (no double toggle)
   - `state_changed` re-renders within the same tick
-  - a failed call triggers `showAlert` (FR-040)
+  - a failed call triggers `showAlert` and a `logMessage` at `warn` level (FR-040, Principle IV)
   - two keys on the same entity both update
 - [ ] T047 [P] [US2] Write `tests/integration/adapter/pi-bridge-entities.test.js`: `entities.list` filters by domain list and case-insensitive query on entity ID and friendly name, respects `limit`, and returns an empty list when disconnected (FR-013)
 
@@ -211,13 +214,20 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - the latest value is always sent at the end (trailing)
   - separate entities are throttled independently
   - 100 values in 2 s produce ≤ 11 calls, the last one carrying the final value (FR-024, SC-004)
-- [ ] T056 [P] [US3] Write `tests/unit/domain/dial-controller.test.js` with `mock.timers`:
+- [ ] T056 [P] [US3] Write `tests/unit/domain/dial-controller.test.js` and `tests/unit/domain/entity-control.test.js` with `mock.timers`.
+  In `dial-controller.test.js`:
   - `left`/`right` → ±fine step and `hold-left`/`hold-right` → ±coarse step, with custom steps overriding the defaults
   - values are clamped to the bounds
   - rotating right with the light off starts at the minimum and sends `turn_on`
   - going below the minimum with `offAtMin` sends the turn-off call, without it the value clamps
   - the optimistic value is shown immediately and takes precedence over stale HA updates until 1.5 s after the last input or until HA reports the target value
   - HA rounding (e.g. 40 → 39 %) is adopted after the window (FR-023–FR-025, FR-028, edge cases)
+
+  In `entity-control.test.js` (data-model §8):
+  - two controllers on the same entity and attribute share one `EntityControl`: together they produce at most one call per 200 ms, the second controller continues from the first one's optimistic value (no jump), and both listeners are notified of every change
+  - two controllers on the same entity but different attributes (brightness and colour temperature) share the entity's throttle: combined at most one call per 200 ms (≤ 5 calls/s), only the latest call per attribute is kept, pending attributes are sent in order of their first change, and the final value of **each** attribute is delivered
+  - optimistic values are kept per attribute (a brightness change does not mask a colour-temperature update from HA)
+  - `cancelPending()` on the registry drops pending calls and optimistic values for all entities
 - [ ] T057 [P] [US3] Write `tests/unit/domain/render/dial-feedback.test.js`: `DialRender` → the `setFeedback` payload `{ title: { text }, icon: { value } }` with a data-URL SVG (100×100) showing value + unit and a progress arc; unavailable style; the `$UA2` text-only variant if research R-10 switched to the fallback
 - [ ] T058 [P] [US3] Write `tests/integration/adapter/dial.test.js` with the fake `$UD` and fake HA server:
   - `onAdd` calls `setFeedbackLayout(context,'$UA1')` once and renders
@@ -226,13 +236,13 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - while disconnected, rotation sends no call, discards any pending throttled call and renders the disconnected style with an error indication; after reconnect, no stale value is sent (edge case "connection drops during a rotation")
   - `onDialDown`/`onDialUp` runs the press action (light toggle, media player `media_play_pause`, FR-026)
   - an external `state_changed` updates the display (FR-027)
-  - a failed call triggers `showAlert`
+  - a failed call triggers `showAlert` and a `logMessage` at `warn` level (Principle IV)
 - [ ] T059 [P] [US3] Write `tests/integration/adapter/pi-bridge-capabilities.test.js`: `entity.capabilities` returns only supported attributes with unit/min/max/default steps (no colour temperature for an on/off light, no position for a cover without SET_POSITION), plus `longPressEligible` (FR-022)
 
 ### Implementation for User Story 3
 
 - [ ] T060 [P] [US3] Implement `src/domain/throttle.js` so that T055 passes
-- [ ] T061 [US3] Implement `src/domain/dial-controller.js` (data-model §8; uses the attribute registry and the throttle, with an injected clock; exposes `cancelPending()`, which the adapter calls when the connection leaves `connected`) so that T056 and the disconnect case of T058 pass. Depends on T060.
+- [ ] T061 [US3] Implement `src/domain/entity-control.js` (the shared `EntityControl` and `EntityControlRegistry` from data-model §8: one throttle per entity, one optimistic value and the latest pending call per attribute, listeners, `cancelPending()` for the whole registry, which the adapter calls when the connection leaves `connected`) and `src/domain/dial-controller.js` (data-model §8a; uses the attribute registry and delegates state to `EntityControl`, with an injected clock), so that T056 and the disconnect case of T058 pass. Depends on T060.
 - [ ] T062 [P] [US3] Implement `src/domain/render/dial-feedback.js` so that T057 passes
 - [ ] T063 [US3] Implement `src/adapter/actions/dial.js` (fixed `DialBinding` from data-model §5; `onDialRotate`, `onDialDown`/`onDialUp`, `setFeedbackLayout` once, render via `dial-feedback` + `setFeedback`) and register it in `src/adapter/app.js`, so that T058 passes. Depends on T061, T062.
 - [ ] T064 [US3] Implement `entity.capabilities` in `src/adapter/pi-bridge.js` so that T059 passes
@@ -266,7 +276,9 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - holding a light Toggle key past the threshold renders the edit style before keyup and sends **no** toggle call
   - the Dynamic Dials show the name and brightness
   - rotating either of two Dynamic Dials changes the brightness, and both displays stay in sync
-  - a fixed HA Dial is unaffected
+  - rotating Dynamic Dial A to 60 % and then Dynamic Dial B one detent right yields 65 % (B continues from the shared value), and the edit-mode key shows the same live value
+  - a fixed HA Dial bound to the same light (also when it controls a different attribute, e.g. colour temperature) and a Dynamic Dial share the entity's throttle (≤ 5 calls/s combined)
+  - a fixed HA Dial bound to a different entity is unaffected
   - a dial press during edit runs the press action on the edited entity
   - `onSetActive(false)` on the source key ends edit mode (V-06)
   - with no Dynamic Dial, a long press sends `toast(hint.noDynamicDial)`
@@ -281,8 +293,8 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 ### Implementation for User Story 4
 
 - [ ] T071 [US4] Implement `src/domain/edit-session.js` (a single-session broker: register/unregister Dynamic Dial contexts, `start`, `input`, `end(reason)`, change events; with an injected clock). It uses `editAttributeFor(entity)` in `src/domain/attributes/index.js`, which returns `light.brightness` for supported lights and `null` otherwise. Done when T067 passes.
-- [ ] T072 [US4] Add the edit style to `src/domain/render/key-model.js` and `src/domain/render/theme.js` so that T068 passes
-- [ ] T073 [US4] Implement `src/adapter/actions/dynamic-dial.js`: it registers with the edit-session broker on add and unregisters on clear, shows `hint.longPress` when idle, and while editing routes rotation through a `DialController` bound to the session entity and attribute and renders the shared feedback. Register it in `src/adapter/app.js`.
+- [ ] T072 [US4] Add the edit style to `src/domain/render/key-model.js` and `src/domain/render/theme.js` so that T068 passes. The live value comes from the session's `EntityControl` (optimistic value if valid, else the HA value).
+- [ ] T073 [US4] Implement `src/adapter/actions/dynamic-dial.js`: it registers with the edit-session broker on add and unregisters on clear, shows `hint.longPress` when idle, and while editing routes rotation through its `DialController`, rebound to the session's `EntityControl` on every session start or switch, and renders on `EntityControl` change notifications so that all dials and the source key stay in sync. Register it in `src/adapter/app.js`.
 - [ ] T074 [US4] Integrate long press into `src/adapter/actions/toggle.js`:
   - the long-press callback starts or switches the edit session, runs the fallback per `longPress` setting, or toasts the hint
   - while the key is the edit source, a short press ends the session
@@ -329,9 +341,9 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 ### Tests for User Story 6 ⚠️ write first, must fail
 
 - [ ] T081 [P] [US6] Extend `tests/unit/domain/render/key-model.test.js` with `triggerModel` (label, `trigger` style, a confirmation flash state), `sensorModel` (value + unit, `warn` style when outside `warnAbove`/`warnBelow`, unavailable) and `serviceModel`
-- [ ] T082 [P] [US6] Write `tests/integration/adapter/scene.test.js`: `onRun` sends `scene.turn_on` / `script.turn_on` / `automation.trigger` depending on the domain, the key shows confirmation for about 1 s, and an error triggers `showAlert`
+- [ ] T082 [P] [US6] Write `tests/integration/adapter/scene.test.js`: `onRun` sends `scene.turn_on` / `script.turn_on` / `automation.trigger` depending on the domain, the key shows confirmation for about 1 s, and an error triggers `showAlert` plus a `logMessage` at `warn` level
 - [ ] T083 [P] [US6] Write `tests/integration/adapter/sensor.test.js`: renders value + unit on add, re-renders on `state_changed` with the warn style beyond the thresholds; `onRun` does nothing
-- [ ] T084 [P] [US6] Write `tests/integration/adapter/service.test.js`: `onRun` sends `call_service` with exactly the configured domain/service/target/data; invalid JSON data in the settings renders the error style instead of calling; an error result triggers `showAlert`
+- [ ] T084 [P] [US6] Write `tests/integration/adapter/service.test.js`: `onRun` sends `call_service` with exactly the configured domain/service/target/data; invalid JSON data in the settings renders the error style instead of calling; an error result triggers `showAlert` plus a `logMessage` at `warn` level
 
 ### Implementation for User Story 6
 
@@ -368,7 +380,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 - [ ] T094 Remove `src/adapter/spike.js` and any `HADECK_SPIKE` handling left over from T035, and make sure research.md holds the final V-01…V-07 results
 - [ ] T095 Audit the licenses of all shipped dependencies (`npm ls --omit=dev --all` plus the vendored `libs/common-html`) against the allowlist in the constitution, and make sure `NOTICE` is complete
 - [ ] T096 Run `npm test` and confirm that coverage of `src/ha/` and `src/domain/` is at least 90 % of lines. Add any missing tests for uncovered branches in those layers.
-- [ ] T097 Run the full validation scenarios 1–8 from [quickstart.md](quickstart.md) on a D200X with Ulanzi Studio on macOS **and** Windows, and record the results (date, Studio version, HA version, pass/fail per scenario) in `specs/001-ha-deck-plugin/validation.md`. Include the SC-001 setup time from scenario 1 (fresh install → first light key working, target < 3 min), the SC-003 timing measurement from scenario 3 (detent → `setFeedback` < 100 ms, last detent → HA state with the final value ≤ 500 ms, taken from debug-log timestamps) and the persistence check from scenario 8 (FR-042).
+- [ ] T097 Run the full validation scenarios 1–8 from [quickstart.md](quickstart.md) on a D200X with Ulanzi Studio on macOS **and** Windows, and record the results (date, Studio version, HA version, pass/fail per scenario) in `specs/001-ha-deck-plugin/validation.md`. Include the SC-001 setup time from scenario 1 (fresh install → first light key working, target < 3 min), the SC-002 measurement from scenario 2 (20 state changes made in the HA UI, at least 19 visible on the key within 1 s), the SC-003 timing measurement from scenario 3 (detent → `setFeedback` < 100 ms, last detent → HA state with the final value ≤ 500 ms, taken from debug-log timestamps) and the persistence check from scenario 8 (FR-042).
 - [ ] T098 Run the 24 h stability check (quickstart scenario 9, SC-007) with 30 bound actions. Record the RSS of the plugin process after 1 h and after 24 h in `specs/001-ha-deck-plugin/validation.md`; pass if there is no crash and the 24 h value is at most 20 % above the 1 h value.
 - [ ] T099 Run `npm run package`, install the resulting `com.ulanzi.hadeck.ulanziPlugin.zip` on a clean Ulanzi Studio, and verify that `LICENSE` and `NOTICE` are inside the plugin folder
 

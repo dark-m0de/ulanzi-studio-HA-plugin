@@ -53,7 +53,10 @@ changes. The simulator does not render dial feedback and does not start the main
 2. Copy or symlink `plugin/com.ulanzi.hadeck.ulanziPlugin` into `UlanziDeckSimulator/plugins`
    and click *Refresh Plugin List*.
 3. Start the main service yourself:
-   `node plugin/com.ulanzi.hadeck.ulanziPlugin/dist/app.js 127.0.0.1 <simulator port> en`.
+   `node plugin/com.ulanzi.hadeck.ulanziPlugin/dist/app.js 127.0.0.1 3906 en`.
+   The arguments are address, port and language (`common-node` reads them from
+   `process.argv[2..4]`); `3906` is the `common-node` default. If the simulator listens on a
+   different WebSocket port (see its console output when it starts), use that one.
    Confirm in the simulator that the main service is connected.
 4. Drag HA Toggle, HA Dial and HA Dynamic Dial onto slots and configure them through the PI.
 5. Expected:
@@ -90,7 +93,8 @@ Record the result of each item in research.md.
      < 3 min (SC-001).
 2. **Toggle key (US2)**: Bind `light.<x>`.
    - A short press toggles it, and the key shows the state and brightness %.
-   - Toggle it in the HA UI → the key updates in ≤ 1 s.
+   - Toggle it in the HA UI → the key updates in ≤ 1 s. Repeat 20 times: at least 19 updates
+     must appear within 1 s (SC-002; compare HA logbook time with the plugin debug log).
    - Disable the entity in HA → the key shows unavailable.
 3. **HA Dial (US3)**: Bind a dial to `light.<x>` / brightness.
    - Each detent changes the value by 5 %, and the display updates immediately.
