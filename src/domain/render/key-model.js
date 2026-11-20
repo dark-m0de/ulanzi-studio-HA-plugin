@@ -44,3 +44,23 @@ export function toggleModel(entity, binding, { t, connected }) {
   }
   return model;
 }
+
+/**
+ * Model for a key in edit mode (FR-033): edit marker, live value of the edited attribute, label.
+ * @param {import('../entity-store.js').EntityState | null} entity
+ * @param {{ entityId?: string, label?: string }} binding
+ * @param {{ t: (key: string) => string, value: number | null, unit: string }} options
+ * @returns {import('./key-svg.js').KeyRender}
+ */
+export function editModel(entity, binding, { t, value, unit }) {
+  const label = text(binding.label) || entity?.friendlyName || objectId(binding.entityId);
+  const hasValue = value !== null && value !== undefined;
+  return {
+    style: 'edit',
+    badge: t('status.edit'),
+    status: '',
+    label,
+    value: hasValue ? value : t('status.off'),
+    unit: hasValue ? unit : '',
+  };
+}

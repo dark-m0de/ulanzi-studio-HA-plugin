@@ -10,7 +10,7 @@ export class ActionBase {
     this.context = context;
     this.app = app;
     this.settings = settings ?? {};
-    this.#bindEntity();
+    this.bindEntity();
   }
 
   get entityId() {
@@ -28,7 +28,7 @@ export class ActionBase {
 
   onSettings(settings) {
     this.settings = settings ?? {};
-    this.#bindEntity();
+    this.bindEntity();
     this.render();
   }
 
@@ -52,7 +52,8 @@ export class ActionBase {
     this.#unsubscribe = null;
   }
 
-  #bindEntity() {
+  /** (Re)subscribes to the store for the current `entityId`. */
+  bindEntity() {
     this.#unsubscribe?.();
     this.#unsubscribe = this.entityId ? this.app.store.subscribe(this.entityId, () => this.onEntityChanged()) : null;
   }

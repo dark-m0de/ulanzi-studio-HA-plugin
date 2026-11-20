@@ -248,15 +248,17 @@ has a default decision, so planning is not blocked.
 
 ## Open validations (device / Studio behaviour not covered by documentation)
 
-Each item has a default decision so planning is not blocked. The checks are part of
+Each item had a default decision so planning was not blocked. All items were validated on a D200X
+by the project owner on 2026-11-20; every default decision holds, so no fallback is needed
+(in particular the right-most Dynamic Dial fallback, T077, is not required). The checks are part of
 [quickstart.md](quickstart.md) and should run early in implementation.
 
-| ID | Question | Default decision | If the check fails |
-|---|---|---|---|
-| V-01 | Are `keydown`/`keyup` delivered reliably for every press? Is `run` also emitted after a long hold? | Use `keydown`/`keyup`, ignore `run` | Derive long-press from `run` timing (degrades to fire-on-release) |
-| V-02 | Does the device render SVG passed to `setBaseDataIcon`, including `<text>`? | SVG keys | PNG background via `setPathIcon` plus the title text parameter |
-| V-03 | Does `setFeedback` accept a data URL in `icon.value`? | Data URL icon in `$UA1` | `$UA2` text-only layout |
-| V-04 | Do multiple Dynamic Dial contexts all receive rotate events independently? | All dials act as input | Implement the right-most fallback (R-12) |
-| V-05 | Lowest Ulanzi Studio version that supports `setFeedback`/`setFeedbackLayout` on the D200X | `"Software": { "MinVersion": "3.3.0" }` | Raise the version, or use `setBaseDataIcon` on encoder contexts if supported |
-| V-06 | Is `onSetActive(false)` sent for contexts on a page that is switched away from? | End edit mode on `setactive:false` of the edited key | Also end it on `clear` and on any key-down on another page |
-| V-07 | Plugin install directory on macOS/Windows for `dev-link` | macOS `~/Library/Application Support/Ulanzi/UlanziDeck/Plugins`, Windows `%APPDATA%\Ulanzi\UlanziDeck\Plugins` | Make it configurable through an env var |
+| ID | Question | Default decision | If the check fails | Result (2026-11-20) |
+|---|---|---|---|---|
+| V-01 | Are `keydown`/`keyup` delivered reliably for every press? Is `run` also emitted after a long hold? | Use `keydown`/`keyup`, ignore `run` | Derive long-press from `run` timing (degrades to fire-on-release) | ✅ Passed on device – default decision kept |
+| V-02 | Does the device render SVG passed to `setBaseDataIcon`, including `<text>`? | SVG keys | PNG background via `setPathIcon` plus the title text parameter | ✅ Passed on device – default decision kept |
+| V-03 | Does `setFeedback` accept a data URL in `icon.value`? | Data URL icon in `$UA1` | `$UA2` text-only layout | ✅ Passed on device – default decision kept |
+| V-04 | Do multiple Dynamic Dial contexts all receive rotate events independently? | All dials act as input | Implement the right-most fallback (R-12) | ✅ Passed on device – default decision kept |
+| V-05 | Lowest Ulanzi Studio version that supports `setFeedback`/`setFeedbackLayout` on the D200X | `"Software": { "MinVersion": "3.3.0" }` | Raise the version, or use `setBaseDataIcon` on encoder contexts if supported | ✅ Passed on device – default decision kept |
+| V-06 | Is `onSetActive(false)` sent for contexts on a page that is switched away from? | End edit mode on `setactive:false` of the edited key | Also end it on `clear` and on any key-down on another page | ✅ Passed on device – default decision kept |
+| V-07 | Plugin install directory on macOS/Windows for `dev-link` | macOS `~/Library/Application Support/Ulanzi/UlanziDeck/Plugins`, Windows `%APPDATA%\Ulanzi\UlanziDeck\Plugins` | Make it configurable through an env var | ✅ Passed on device – default decision kept |

@@ -2,6 +2,8 @@
 // createApp() takes all dependencies so it can run against a fake $UD in tests.
 import { HAClient, defaultClock } from '../ha/client.js';
 import { EntityStore } from '../domain/entity-store.js';
+import { EntityControlRegistry } from '../domain/entity-control.js';
+import { EditSessionBroker } from '../domain/edit-session.js';
 import { createI18n } from '../domain/i18n.js';
 import { createLogger, installConsoleRedaction } from './logger.js';
 import { createPiBridge } from './pi-bridge.js';
@@ -46,6 +48,15 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
   const store = new EntityStore();
   const client = new HAClient({ createSocket, clock, logger });
   const piBridge = createPiBridge({ ud, logger });
+  // Shared per-entity dial state: one throttle per entity, optimistic values (data-model §8).
+  const controls = new EntityControlRegistry({
+    clock,
+    send: (call) => client.callService(call),
+    onError: (err, call) =>
+      logger.warn(`service call ${call.domain}.${call.service} failed (${err?.key ?? 'error'}${err?.haCode ? `: ${err.haCode}` : ''})`),
+  });
+  // Long-press edit mode: at most one session at a time (data-model §6).
+  const editSession = new EditSessionBroker({ clock });
   /** @type {Map<string, { type: string, instance: any }>} */
   const registry = new Map();
   const statusListeners = new Set();
@@ -57,6 +68,8 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
     logger,
     piBridge,
     registry,
+    controls,
+    editSession,
     clock,
     createSocket,
     t: i18n.t,
@@ -165,6 +178,11 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
   let authToastShown = false;
   client.addEventListener('status', (e) => {
     const { status } = e.detail;
+    // Nothing queued while offline is replayed after reconnect (edge case in spec).
+    if (status !== 'connected') {
+      controls.cancelPending();
+      editSession.connectionLost();
+    }
     if (status === 'auth_failed' && !authToastShown) {
       authToastShown = true;
       ud.toast(i18n.t('error.auth'));

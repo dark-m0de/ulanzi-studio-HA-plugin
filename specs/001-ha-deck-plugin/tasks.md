@@ -115,7 +115,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Early device validation (manual, needs Ulanzi Studio + D200X)
 
-- [ ] T035 Build a temporary spike in `src/adapter/spike.js` (enabled only when the env var `HADECK_SPIKE=1` is set; delete it after recording results). With `npm run build && npm run dev:link`, run validations V-01 to V-06 from [quickstart.md](quickstart.md#early-device-validations-run-first). Record each result and the decision taken in the "Open validations" table of [research.md](research.md), and update `Software.MinVersion` in `plugin/…/manifest.json` per V-05. If V-02 or V-03 fail, update [research.md](research.md) R-09/R-10 to the documented fallback before starting US2/US3.
+- [X] T035 Build a temporary spike in `src/adapter/spike.js` (enabled only when the env var `HADECK_SPIKE=1` is set; delete it after recording results). With `npm run build && npm run dev:link`, run validations V-01 to V-06 from [quickstart.md](quickstart.md#early-device-validations-run-first). Record each result and the decision taken in the "Open validations" table of [research.md](research.md), and update `Software.MinVersion` in `plugin/…/manifest.json` per V-05. If V-02 or V-03 fail, update [research.md](research.md) R-09/R-10 to the documented fallback before starting US2/US3.
 
 **Checkpoint**: The foundation is ready, all Phase 2 tests pass, and device behaviour is known. User story work can begin.
 
@@ -208,13 +208,13 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 3 ⚠️ write first, must fail
 
-- [ ] T055 [P] [US3] Write `tests/unit/domain/throttle.test.js` with `mock.timers`:
+- [X] T055 [P] [US3] Write `tests/unit/domain/throttle.test.js` with `mock.timers`:
   - the first value is sent immediately (leading)
   - at most one call per 200 ms window per key
   - the latest value is always sent at the end (trailing)
   - separate entities are throttled independently
   - 100 values in 2 s produce ≤ 11 calls, the last one carrying the final value (FR-024, SC-004)
-- [ ] T056 [P] [US3] Write `tests/unit/domain/dial-controller.test.js` and `tests/unit/domain/entity-control.test.js` with `mock.timers`.
+- [X] T056 [P] [US3] Write `tests/unit/domain/dial-controller.test.js` and `tests/unit/domain/entity-control.test.js` with `mock.timers`.
   In `dial-controller.test.js`:
   - `left`/`right` → ±fine step and `hold-left`/`hold-right` → ±coarse step, with custom steps overriding the defaults
   - values are clamped to the bounds
@@ -228,8 +228,8 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - two controllers on the same entity but different attributes (brightness and colour temperature) share the entity's throttle: combined at most one call per 200 ms (≤ 5 calls/s), only the latest call per attribute is kept, pending attributes are sent in order of their first change, and the final value of **each** attribute is delivered
   - optimistic values are kept per attribute (a brightness change does not mask a colour-temperature update from HA)
   - `cancelPending()` on the registry drops pending calls and optimistic values for all entities
-- [ ] T057 [P] [US3] Write `tests/unit/domain/render/dial-feedback.test.js`: `DialRender` → the `setFeedback` payload `{ title: { text }, icon: { value } }` with a data-URL SVG (100×100) showing value + unit and a progress arc; unavailable style; the `$UA2` text-only variant if research R-10 switched to the fallback
-- [ ] T058 [P] [US3] Write `tests/integration/adapter/dial.test.js` with the fake `$UD` and fake HA server:
+- [X] T057 [P] [US3] Write `tests/unit/domain/render/dial-feedback.test.js`: `DialRender` → the `setFeedback` payload `{ title: { text }, icon: { value } }` with a data-URL SVG (100×100) showing value + unit and a progress arc; unavailable style; the `$UA2` text-only variant if research R-10 switched to the fallback
+- [X] T058 [P] [US3] Write `tests/integration/adapter/dial.test.js` with the fake `$UD` and fake HA server:
   - `onAdd` calls `setFeedbackLayout(context,'$UA1')` once and renders
   - `onDialRotate` sends throttled `light.turn_on {brightness_pct}`
   - the display updates on every detent: `setFeedback` is emitted synchronously within the `onDialRotate` handler, before any HA round trip (SC-003)
@@ -237,18 +237,18 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - `onDialDown`/`onDialUp` runs the press action (light toggle, media player `media_play_pause`, FR-026)
   - an external `state_changed` updates the display (FR-027)
   - a failed call triggers `showAlert` and a `logMessage` at `warn` level (Principle IV)
-- [ ] T059 [P] [US3] Write `tests/integration/adapter/pi-bridge-capabilities.test.js`: `entity.capabilities` returns only supported attributes with unit/min/max/default steps (no colour temperature for an on/off light, no position for a cover without SET_POSITION), plus `longPressEligible` (FR-022)
+- [X] T059 [P] [US3] Write `tests/integration/adapter/pi-bridge-capabilities.test.js`: `entity.capabilities` returns only supported attributes with unit/min/max/default steps (no colour temperature for an on/off light, no position for a cover without SET_POSITION), plus `longPressEligible` (FR-022)
 
 ### Implementation for User Story 3
 
-- [ ] T060 [P] [US3] Implement `src/domain/throttle.js` so that T055 passes
-- [ ] T061 [US3] Implement `src/domain/entity-control.js` (the shared `EntityControl` and `EntityControlRegistry` from data-model §8: one throttle per entity, one optimistic value and the latest pending call per attribute, listeners, `cancelPending()` for the whole registry, which the adapter calls when the connection leaves `connected`) and `src/domain/dial-controller.js` (data-model §8a; uses the attribute registry and delegates state to `EntityControl`, with an injected clock), so that T056 and the disconnect case of T058 pass. Depends on T060.
-- [ ] T062 [P] [US3] Implement `src/domain/render/dial-feedback.js` so that T057 passes
-- [ ] T063 [US3] Implement `src/adapter/actions/dial.js` (fixed `DialBinding` from data-model §5; `onDialRotate`, `onDialDown`/`onDialUp`, `setFeedbackLayout` once, render via `dial-feedback` + `setFeedback`) and register it in `src/adapter/app.js`, so that T058 passes. Depends on T061, T062.
-- [ ] T064 [US3] Implement `entity.capabilities` in `src/adapter/pi-bridge.js` so that T059 passes
-- [ ] T065 [US3] Create `plugin/…/property-inspector/dial.html`:
+- [X] T060 [P] [US3] Implement `src/domain/throttle.js` so that T055 passes
+- [X] T061 [US3] Implement `src/domain/entity-control.js` (the shared `EntityControl` and `EntityControlRegistry` from data-model §8: one throttle per entity, one optimistic value and the latest pending call per attribute, listeners, `cancelPending()` for the whole registry, which the adapter calls when the connection leaves `connected`) and `src/domain/dial-controller.js` (data-model §8a; uses the attribute registry and delegates state to `EntityControl`, with an injected clock), so that T056 and the disconnect case of T058 pass. Depends on T060.
+- [X] T062 [P] [US3] Implement `src/domain/render/dial-feedback.js` so that T057 passes
+- [X] T063 [US3] Implement `src/adapter/actions/dial.js` (fixed `DialBinding` from data-model §5; `onDialRotate`, `onDialDown`/`onDialUp`, `setFeedbackLayout` once, render via `dial-feedback` + `setFeedback`) and register it in `src/adapter/app.js`, so that T058 passes. Depends on T061, T062.
+- [X] T064 [US3] Implement `entity.capabilities` in `src/adapter/pi-bridge.js` so that T059 passes
+- [X] T065 [US3] Create `plugin/…/property-inspector/dial.html`:
   - fields: connection block, entity picker, attribute select filled from `entity.capabilities`, label, fine/coarse step (placeholders show the defaults), "turn off at minimum" checkbox
-- [ ] T066 [P] [US3] Add the dial keys (`pi.attribute.*` for each attribute id, `pi.stepFine`, `pi.stepCoarse`, `pi.offAtMin`, unit labels) to `plugin/…/en.json` and `plugin/…/de_DE.json`
+- [X] T066 [P] [US3] Add the dial keys (`pi.attribute.*` for each attribute id, `pi.stepFine`, `pi.stepCoarse`, `pi.offAtMin`, unit labels) to `plugin/…/en.json` and `plugin/…/de_DE.json`
 
 **Checkpoint**: Dials work with fixed bindings. All P1 stories are complete.
 
@@ -262,7 +262,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 4 ⚠️ write first, must fail
 
-- [ ] T067 [P] [US4] Write `tests/unit/domain/edit-session.test.js` with `mock.timers` covering the state machine in data-model §6:
+- [X] T067 [P] [US4] Write `tests/unit/domain/edit-session.test.js` with `mock.timers` covering the state machine in data-model §6:
   - a long press on an eligible light with ≥ 1 Dynamic Dial registered → `editing`
   - no Dynamic Dial registered → stays idle and returns the `hint.noDynamicDial` result (FR-039)
   - an ineligible entity returns the fallback result
@@ -271,8 +271,8 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - the session ends on: a short press on the source key, the timeout (reset by every input, FR-034), `pageInactive(sourceContext)`, connection loss, the source key being cleared, the entity becoming unavailable, the last Dynamic Dial being removed
   - every registered Dynamic Dial receives the same feedback model (FR-032a)
   - rotations from any registered dial apply to the same value in order of arrival
-- [ ] T068 [P] [US4] Extend `tests/unit/domain/render/key-model.test.js` with the edit style: edit marker, live value and label (FR-033)
-- [ ] T069 [P] [US4] Write `tests/integration/adapter/dynamic-dial.test.js` with the fake `$UD` and fake HA server:
+- [X] T068 [P] [US4] Extend `tests/unit/domain/render/key-model.test.js` with the edit style: edit marker, live value and label (FR-033)
+- [X] T069 [P] [US4] Write `tests/integration/adapter/dynamic-dial.test.js` with the fake `$UD` and fake HA server:
   - holding a light Toggle key past the threshold renders the edit style before keyup and sends **no** toggle call
   - the Dynamic Dials show the name and brightness
   - rotating either of two Dynamic Dials changes the brightness, and both displays stay in sync
@@ -283,7 +283,7 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - `onSetActive(false)` on the source key ends edit mode (V-06)
   - with no Dynamic Dial, a long press sends `toast(hint.noDynamicDial)`
   - idle Dynamic Dials show `hint.longPress` and ignore rotation (FR-036)
-- [ ] T070 [P] [US4] Extend `tests/integration/adapter/toggle.test.js` with the long-press options (FR-037):
+- [X] T070 [P] [US4] Extend `tests/integration/adapter/toggle.test.js` with the long-press options (FR-037):
   - `longPress: disabled` → a long press acts as a short press
   - `entity` → toggles `longPressEntityId`
   - `service` → calls `longPressService`
@@ -292,10 +292,10 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Implementation for User Story 4
 
-- [ ] T071 [US4] Implement `src/domain/edit-session.js` (a single-session broker: register/unregister Dynamic Dial contexts, `start`, `input`, `end(reason)`, change events; with an injected clock). It uses `editAttributeFor(entity)` in `src/domain/attributes/index.js`, which returns `light.brightness` for supported lights and `null` otherwise. Done when T067 passes.
-- [ ] T072 [US4] Add the edit style to `src/domain/render/key-model.js` and `src/domain/render/theme.js` so that T068 passes. The live value comes from the session's `EntityControl` (optimistic value if valid, else the HA value).
-- [ ] T073 [US4] Implement `src/adapter/actions/dynamic-dial.js`: it registers with the edit-session broker on add and unregisters on clear, shows `hint.longPress` when idle, and while editing routes rotation through its `DialController`, rebound to the session's `EntityControl` on every session start or switch, and renders on `EntityControl` change notifications so that all dials and the source key stay in sync. Register it in `src/adapter/app.js`.
-- [ ] T074 [US4] Integrate long press into `src/adapter/actions/toggle.js`:
+- [X] T071 [US4] Implement `src/domain/edit-session.js` (a single-session broker: register/unregister Dynamic Dial contexts, `start`, `input`, `end(reason)`, change events; with an injected clock). It uses `editAttributeFor(entity)` in `src/domain/attributes/index.js`, which returns `light.brightness` for supported lights and `null` otherwise. Done when T067 passes.
+- [X] T072 [US4] Add the edit style to `src/domain/render/key-model.js` and `src/domain/render/theme.js` so that T068 passes. The live value comes from the session's `EntityControl` (optimistic value if valid, else the HA value).
+- [X] T073 [US4] Implement `src/adapter/actions/dynamic-dial.js`: it registers with the edit-session broker on add and unregisters on clear, shows `hint.longPress` when idle, and while editing routes rotation through its `DialController`, rebound to the session's `EntityControl` on every session start or switch, and renders on `EntityControl` change notifications so that all dials and the source key stay in sync. Register it in `src/adapter/app.js`.
+- [X] T074 [US4] Integrate long press into `src/adapter/actions/toggle.js`:
   - the long-press callback starts or switches the edit session, runs the fallback per `longPress` setting, or toasts the hint
   - while the key is the edit source, a short press ends the session
   - the key renders the edit style
@@ -303,9 +303,9 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - the connection-status broadcast ends the session on disconnect
 
   Done when T069 and T070 pass.
-- [ ] T075 [US4] Add the long-press fields to `plugin/…/property-inspector/toggle.html`: behaviour select (edit / disabled / other entity / service), second-entity picker, service fields, threshold in ms. Create `plugin/…/property-inspector/dynamic-dial.html`: connection block, step fields, "turn off at minimum", edit timeout in seconds, and the prominent hint "Use only one Dynamic Dial per device" (FR-032a).
-- [ ] T076 [P] [US4] Add the edit-mode keys (`status.edit`, `hint.longPress`, `hint.noDynamicDial`, `hint.oneDynamicDial`, `pi.longPress.*`, `pi.editTimeout`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
-- [ ] T077 [US4] **Only if validation V-04 failed** (see [research.md](research.md) R-12): implement the right-most fallback in `src/domain/edit-session.js`. Only the registered context with the largest key column (from `decodeContext`) accepts input; the other Dynamic Dials show `hint.oneDynamicDial`. Add matching cases to `tests/unit/domain/edit-session.test.js` first. If V-04 passed, mark this task done with a note in research.md.
+- [X] T075 [US4] Add the long-press fields to `plugin/…/property-inspector/toggle.html`: behaviour select (edit / disabled / other entity / service), second-entity picker, service fields, threshold in ms. Create `plugin/…/property-inspector/dynamic-dial.html`: connection block, step fields, "turn off at minimum", edit timeout in seconds, and the prominent hint "Use only one Dynamic Dial per device" (FR-032a).
+- [X] T076 [P] [US4] Add the edit-mode keys (`status.edit`, `hint.longPress`, `hint.noDynamicDial`, `hint.oneDynamicDial`, `pi.longPress.*`, `pi.editTimeout`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
+- [X] T077 [US4] **Only if validation V-04 failed** (see [research.md](research.md) R-12): implement the right-most fallback in `src/domain/edit-session.js`. Only the registered context with the largest key column (from `decodeContext`) accepts input; the other Dynamic Dials show `hint.oneDynamicDial`. Add matching cases to `tests/unit/domain/edit-session.test.js` first. If V-04 passed, mark this task done with a note in research.md.
 
 **Checkpoint**: Long-press editing works for lights. All required features from the original request are complete.
 

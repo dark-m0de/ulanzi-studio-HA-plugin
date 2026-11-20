@@ -34,3 +34,15 @@ export function supportedAttributes(entity) {
   if (!entity) return [];
   return ATTRIBUTES.filter((a) => a.domains.includes(entity.domain) && a.isSupported(entity));
 }
+
+const EDIT_ATTRIBUTE_BY_DOMAIN = { light: 'light.brightness' };
+
+/**
+ * The attribute a long press puts into edit mode for this entity, or null if the entity is not
+ * eligible (FR-031/FR-032; extended to more domains in US5).
+ * @returns {ControllableAttribute | null}
+ */
+export function editAttributeFor(entity) {
+  const attribute = entity ? getAttribute(EDIT_ATTRIBUTE_BY_DOMAIN[entity.domain]) : null;
+  return attribute && attribute.isSupported(entity) ? attribute : null;
+}

@@ -50,9 +50,9 @@ test('a short press sends <domain>.toggle; onRun is ignored (no double toggle)',
   assert.deepEqual(calls[0].target, { entity_id: 'switch.coffee' });
 });
 
-test('a long press without edit support falls back to toggling (Story 4 scenario 5)', async () => {
+test('a switch with longPress: edit falls back to toggling (Story 4 scenario 5)', async () => {
   h = await createHarness();
-  addToggle('switch.coffee');
+  addToggle('switch.coffee', '0_0', { longPress: 'edit' });
   h.ud.emitAction('keydown', 'toggle', {});
   h.clock.tick(500);
   h.ud.emitAction('keyup', 'toggle', {});
@@ -129,4 +129,68 @@ test('identical renders are not re-sent, but setActive(true) forces a render', a
   assert.equal(count(), before);
   h.ud.emitAction('setactive', 'toggle', { active: true });
   assert.equal(count(), before + 1);
+});
+
+const longPress = (key = '0_0', ms = 500) => {
+  h.ud.emitAction('keydown', 'toggle', { key });
+  h.clock.tick(ms);
+  h.ud.emitAction('keyup', 'toggle', { key });
+};
+
+test('longPress: disabled → a long press acts as a short press (FR-037)', async () => {
+  h = await createHarness();
+  addToggle('light.living_room', '0_0', { longPress: 'disabled' });
+  longPress();
+  await waitFor(() => h.server.messages('call_service').length === 1);
+  assert.equal(h.server.messages('call_service')[0].service, 'toggle');
+});
+
+test('longPress: entity → toggles longPressEntityId instead of the key entity', async () => {
+  h = await createHarness();
+  addToggle('light.living_room', '0_0', { longPress: 'entity', longPressEntityId: 'switch.coffee' });
+  longPress();
+  await waitFor(() => h.server.messages('call_service').length === 1);
+  const call = h.server.messages('call_service')[0];
+  assert.equal(`${call.domain}.${call.service}`, 'switch.toggle');
+  assert.deepEqual(call.target, { entity_id: 'switch.coffee' });
+});
+
+test('longPress: service → calls longPressService (object or flat form fields)', async () => {
+  h = await createHarness();
+  addToggle('light.living_room', '0_0', {
+    longPress: 'service',
+    longPressService: { domain: 'scene', service: 'turn_on', target: { entity_id: 'scene.evening' }, data: {} },
+  });
+  addToggle('light.living_room', '0_1', {
+    longPress: 'service',
+    longPressDomain: 'light',
+    longPressServiceName: 'turn_on',
+    longPressTarget: 'light.desk',
+    longPressData: '{"brightness_pct": 100}',
+  });
+  longPress('0_0');
+  longPress('0_1');
+  await waitFor(() => h.server.messages('call_service').length === 2);
+  const [a, b] = h.server.messages('call_service');
+  assert.deepEqual([a.domain, a.service, a.target], ['scene', 'turn_on', { entity_id: 'scene.evening' }]);
+  assert.deepEqual([b.domain, b.service, b.target, b.service_data], ['light', 'turn_on', { entity_id: 'light.desk' }, { brightness_pct: 100 }]);
+});
+
+test('an invalid long-press service shows an alert and sends nothing', async () => {
+  h = await createHarness();
+  const ctx = addToggle('light.living_room', '0_0', { longPress: 'service', longPressDomain: 'light', longPressServiceName: 'turn_on', longPressData: '{oops' });
+  longPress();
+  assert.equal(h.ud.callsOf('showAlert', ctx).length, 1);
+  await settle(30);
+  assert.equal(h.server.messages('call_service').length, 0);
+});
+
+test('a custom longPressMs is respected', async () => {
+  h = await createHarness();
+  addToggle('light.living_room', '0_0', { longPress: 'disabled', longPressMs: 1200 });
+  h.ud.emitAction('keydown', 'toggle', {});
+  h.clock.tick(1000);
+  h.ud.emitAction('keyup', 'toggle', {});
+  await waitFor(() => h.server.messages('call_service').length === 1, { message: 'short press at 1000 ms' });
+  assert.equal(h.ud.callsOf('toast').length, 0);
 });

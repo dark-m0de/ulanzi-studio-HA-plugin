@@ -15,6 +15,7 @@ import {
 /** @typedef {'unconfigured' | 'connecting' | 'connected' | 'reconnecting' | 'auth_failed'} ConnectionStatus */
 
 export const defaultClock = {
+  now: () => Date.now(),
   setTimeout: (fn, ms) => setTimeout(fn, ms),
   clearTimeout: (id) => clearTimeout(id),
   setInterval: (fn, ms) => setInterval(fn, ms),

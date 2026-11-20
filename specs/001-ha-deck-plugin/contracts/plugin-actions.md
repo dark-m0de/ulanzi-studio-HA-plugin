@@ -52,7 +52,10 @@ Every field is optional unless marked *required*. Defaults are shown in parenthe
   "onText": "", "offText": "",             // (localised status.on / status.off)
   "longPress": "edit",                     // edit | disabled | entity | service
   "longPressEntityId": "",                 // required if longPress = entity
-  "longPressService": null,                // ServiceCall, required if longPress = service
+  "longPressService": null,                // ServiceCall object, or the flat PI fields below
+  "longPressDomain": "", "longPressServiceName": "", // required if longPress = service
+  "longPressTarget": "",                   // entity ids, comma-separated (optional)
+  "longPressData": "",                     // JSON object as text (optional)
   "longPressMs": 500                       // 300–2000
 }
 ```

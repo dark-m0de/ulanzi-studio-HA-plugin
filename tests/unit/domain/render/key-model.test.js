@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toggleModel } from '../../../../src/domain/render/key-model.js';
+import { toggleModel, editModel } from '../../../../src/domain/render/key-model.js';
 import { EntityStore } from '../../../../src/domain/entity-store.js';
 import { loadStates } from '../../../support/fixtures/index.js';
 
@@ -75,4 +75,22 @@ test('no entity configured shows a setup hint', () => {
 test('while disconnected the key shows the disconnected status', () => {
   const m = toggleModel(e('light.living_room'), { entityId: 'light.living_room' }, { t, connected: false });
   assert.deepEqual(m, { style: 'unavailable', status: '[status.disconnected]', label: 'Living Room' });
+});
+
+test('edit style shows the edit marker, live value and label (FR-033)', () => {
+  assert.deepEqual(editModel(e('light.living_room'), { entityId: 'light.living_room' }, { t, value: 65, unit: '%' }), {
+    style: 'edit',
+    badge: '[status.edit]',
+    status: '',
+    label: 'Living Room',
+    value: 65,
+    unit: '%',
+  });
+});
+
+test('edit style with the light off shows the off text instead of a value', () => {
+  const m = editModel(e('light.living_room'), { entityId: 'light.living_room', label: 'Sofa' }, { t, value: null, unit: '%' });
+  assert.equal(m.value, '[status.off]');
+  assert.equal(m.unit, '');
+  assert.equal(m.label, 'Sofa');
 });

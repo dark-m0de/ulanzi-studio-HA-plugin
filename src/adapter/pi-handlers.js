@@ -2,6 +2,7 @@
 import { testConnection } from '../ha/client.js';
 import { normalizeBaseUrl } from '../ha/messages.js';
 import { PiError } from './pi-bridge.js';
+import { supportedAttributes, editAttributeFor } from '../domain/attributes/index.js';
 
 const tokenOrNull = (value) => (typeof value === 'string' && value.trim() ? value.trim() : null);
 
@@ -51,6 +52,17 @@ export function registerPiHandlers(app) {
       .slice(0, max)
       .map(({ entityId, friendlyName, domain, state }) => ({ entityId, friendlyName, domain, state }));
     return { entities };
+  });
+
+  piBridge.register('entity.capabilities', ({ entityId } = {}) => {
+    const entity = typeof entityId === 'string' ? app.store.get(entityId) : null;
+    if (!entity) return { attributes: [], longPressEligible: false };
+    const attributes = supportedAttributes(entity).map((a) => {
+      const { min, max } = a.bounds(entity);
+      const { fine, coarse } = a.defaultSteps(entity);
+      return { id: a.id, unit: a.unit(entity), min, max, defaultFine: fine, defaultCoarse: coarse };
+    });
+    return { attributes, longPressEligible: editAttributeFor(entity) !== null };
   });
 
   app.onStatus(() => piBridge.push('connection.changed', statusPayload()));

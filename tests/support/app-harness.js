@@ -17,6 +17,9 @@ const en = {
   'status.notFound': 'Missing',
   'status.disconnected': 'Offline',
   'error.auth': 'Authentication failed',
+  'status.edit': 'EDIT',
+  'hint.longPress': 'Hold a key',
+  'hint.noDynamicDial': 'No Dynamic Dial',
 };
 
 /**

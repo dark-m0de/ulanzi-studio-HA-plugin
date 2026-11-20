@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HA Dial</title>
+  <link rel="stylesheet" href="../libs/common-html/css/uspi.css">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+  <div class="uspi-wrapper">
+    <div id="hadeck-connection"></div>
+
+    <form id="property-inspector" autocomplete="off">
+      <div class="uspi-heading" data-localize>pi.heading.dial</div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.entity</div>
+        <input class="uspi-item-value" type="text" name="entityId" id="entityId" spellcheck="false"
+               data-localize="pi.entity.placeholder" placeholder="pi.entity.placeholder">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.attribute</div>
+        <select class="uspi-item-value" name="attributeId" id="attributeId"></select>
+      </div>
+      <div class="hadeck-hint hidden" id="attribute-none" data-localize>pi.attribute.none</div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.label</div>
+        <input class="uspi-item-value" type="text" name="label" maxlength="24"
+               data-localize="pi.label.placeholder" placeholder="pi.label.placeholder">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.stepFine</div>
+        <input class="uspi-item-value" type="number" name="stepFine" id="stepFine" min="0" step="any">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.stepCoarse</div>
+        <input class="uspi-item-value" type="number" name="stepCoarse" id="stepCoarse" min="0" step="any">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.offAtMin</div>
+        <select class="uspi-item-value" name="offAtMin">
+          <option value="true" data-localize="pi.yes">pi.yes</option>
+          <option value="false" data-localize="pi.no">pi.no</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <script src="../libs/common-html/js/constants.js"></script>
+  <script src="../libs/common-html/js/eventEmitter.js"></script>
+  <script src="../libs/common-html/js/timers.js"></script>
+  <script src="../libs/common-html/js/utils.js"></script>
+  <script src="../libs/common-html/js/ulanziApi.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const entityInput = document.getElementById('entityId');
+    const attributeSelect = document.getElementById('attributeId');
+    const noneHint = document.getElementById('attribute-none');
+    const stepFine = document.getElementById('stepFine');
+    const stepCoarse = document.getElementById('stepCoarse');
+    let capabilities = [];
+
+    function showDefaults() {
+      const cap = capabilities.find((c) => c.id === attributeSelect.value);
+      const unit = cap ? cap.unit : '';
+      stepFine.placeholder = cap ? HADeck.t('pi.default', { value: cap.defaultFine + unit }) : '';
+      stepCoarse.placeholder = cap ? HADeck.t('pi.default', { value: cap.defaultCoarse + unit }) : '';
+    }
+
+    function loadCapabilities(entityId, selected) {
+      attributeSelect.innerHTML = '';
+      capabilities = [];
+      if (!entityId) {
+        noneHint.classList.add('hidden');
+        showDefaults();
+        return Promise.resolve();
+      }
+      return HADeck.request('entity.capabilities', { entityId }).then((res) => {
+        capabilities = (res && res.attributes) || [];
+        capabilities.forEach((cap) => {
+          const option = document.createElement('option');
+          option.value = cap.id;
+          option.textContent = HADeck.t('pi.attribute.' + cap.id);
+          attributeSelect.appendChild(option);
+        });
+        noneHint.classList.toggle('hidden', capabilities.length > 0);
+        if (selected && capabilities.some((c) => c.id === selected)) attributeSelect.value = selected;
+        showDefaults();
+      }).catch(() => {});
+    }
+
+    HADeck.mountConnectionBlock('#hadeck-connection');
+    const binding = HADeck.bindForm('#property-inspector', {
+      onLoad: (settings) => loadCapabilities(settings.entityId, settings.attributeId),
+    });
+    entityInput.addEventListener('change', () => {
+      loadCapabilities(entityInput.value.trim()).then(binding.save);
+    });
+    attributeSelect.addEventListener('change', showDefaults);
+    HADeck.mountEntityPicker(entityInput, {
+      domains: ['light', 'media_player', 'climate', 'cover', 'fan', 'input_number', 'number'],
+    });
+    $UD.connect(HADeck.ACTION_PREFIX + 'dial');
+  </script>
+</body>
+</html>
