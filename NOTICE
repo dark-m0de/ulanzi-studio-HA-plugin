@@ -12,7 +12,28 @@ Ulanzi or the Home Assistant project / Open Home Foundation.
 Third-party components
 --------------------------------------------------------------------------------
 
-No third-party components are bundled yet. When a component is added
-(e.g. the UlanziDeckPlugin-SDK libraries, Apache-2.0), list it here with
-its name, copyright holder, license and source URL, and carry over the
-contents of its own NOTICE file if it has one.
+This product bundles the following third-party components. None of them
+ships its own NOTICE file. The full license texts of the components bundled
+into dist/app.js are in dist/THIRD_PARTY_LICENSES.txt.
+
+ulanzideck-api (plugin-common-node)
+  Copyright UlanziTechnology
+  License: Apache License, Version 2.0
+  Source: https://github.com/UlanziTechnology/plugin-common-node
+  Bundled into dist/app.js.
+
+plugin-common-html
+  Copyright UlanziTechnology
+  License: Apache License, Version 2.0
+  Source: https://github.com/UlanziTechnology/plugin-common-html
+  Vendored unchanged in libs/common-html/ (see libs/common-html/SOURCE.md).
+
+ws
+  Copyright (c) 2011 Einar Otto Stangvik and contributors
+  License: MIT
+  Source: https://github.com/websockets/ws
+  Bundled into dist/app.js.
+
+When adding a component, list it here with its name, copyright holder,
+license and source URL, and carry over the contents of its own NOTICE file
+if it has one.

@@ -168,8 +168,8 @@ As a user, I can additionally place on keys:
 - **FR-020**: System MUST provide a dial action "HA Dial" that is permanently bound to an entity and a controllable value.
 - **FR-021**: System MUST support at least the following controllable values: light brightness, light colour temperature, media player volume, thermostat target temperature, cover position, fan speed, `input_number`/`number` value.
 - **FR-022**: System MUST offer in the configuration only values that the selected entity actually supports according to HA.
-- **FR-023**: Users MUST be able to configure per dial the step size (fine) and the step size when rotating while pressed (coarse); defaults 5 % and 20 % (for temperatures: the entity's step and 0.5 °).
-- **FR-024**: System MUST update the value in the dial display immediately while rotating (optimistic display) and send changes to HA batched (at most approx. 5 calls per second per entity; the last value is always sent).
+- **FR-023**: Users MUST be able to configure per dial the step size (fine) and the step size when rotating while pressed (coarse); defaults 5 % (fine) and 20 % (coarse); for temperatures fine = the entity's step (0.5 ° if the entity defines none) and coarse = 4 × fine.
+- **FR-024**: System MUST update the value in the dial display immediately while rotating (optimistic display) and send changes to HA batched (at most one call per 200 ms per entity, i.e. ≤ 5 calls per second; the last value is always sent).
 - **FR-025**: System MUST clamp values to the entity's valid bounds.
 - **FR-026**: System MUST execute a domain-dependent default action on a short dial press (light/switch/fan: toggle; media player: toggle between play and pause; thermostat: on/off).
 - **FR-027**: System MUST show the entity name and current value (with unit) in the dial display and show an error state when unavailable.
@@ -216,7 +216,7 @@ As a user, I can additionally place on keys:
 - **SC-004**: A rotation from 0 % to 100 % brightness produces at most as many HA calls as defined in FR-024, and the final value in HA matches the displayed value in 100 % of cases.
 - **SC-005**: Short and long presses are distinguished correctly in 100 % of cases in tests with 20 attempts per variant (no unintended toggle on long-press).
 - **SC-006**: After an HA restart, all keys/dials are up to date again without user intervention within 30 seconds of HA becoming reachable.
-- **SC-007**: With 30 assigned keys/dials, the plugin remains stable over 24 hours of continuous operation (no crash, no noticeably growing memory usage).
+- **SC-007**: With 30 assigned keys/dials, the plugin remains stable over 24 hours of continuous operation: no crash, and the memory usage (RSS) of the plugin process after 24 h is at most 20 % above the value measured after 1 h.
 - **SC-008**: For every light key, brightness can be changed via long-press + rotation without additional configuration (apart from a Dynamic Dial assigned once).
 
 ## Assumptions
@@ -227,7 +227,8 @@ As a user, I can additionally place on keys:
 - Long-press is detected by the plugin from the time between press and release, because the SDK provides no dedicated long-press event. Edit mode is therefore activated as soon as the threshold is reached (while still pressed).
 - The SDK does not allow an action to take over arbitrary dials; therefore one dial must be assigned the "HA Dynamic Dial" action once for the long-press edit mode to work.
 - Home Assistant is reachable on the local network; remote access via HTTPS (e.g. Nabu Casa) is supported as long as the certificate is valid. Self-signed certificates are out of scope for v1.
-- The connection test from the configuration UI may require a CORS allowance in HA; this is documented in the installation guide if it cannot be avoided.
+- No CORS allowance in HA is required: the configuration UI does not connect to HA itself but performs the connection test and entity search through the plugin's main service.
+- "Configuration UI" refers to the per-action settings page that Ulanzi Studio shows for a key or dial (called *Property Inspector* in the Ulanzi SDK and in the plan).
 - Folder navigation, multi-actions (double tap etc.), macros, HA templates and camera/image display are out of scope for v1.
 - "Original plugin" refers to the existing Home Assistant plugin without dial support; ha-hub-ulanzi serves only as a source of ideas, and no code is adopted from it (license AGPL-3.0).
 - Like the SDK, the project is licensed under Apache-2.0; no code is adopted from projects with stricter licenses (see constitution, section "Licensing & Code Provenance").

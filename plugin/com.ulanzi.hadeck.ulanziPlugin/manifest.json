@@ -1,0 +1,100 @@
+{
+  "Author": "dark-m0de",
+  "Name": "HA Deck",
+  "Description": "Control Home Assistant from Ulanzi Deck keys and dials.",
+  "Icon": "resources/plugin.svg",
+  "Version": "0.1.0",
+  "Category": "Home Assistant",
+  "CategoryIcon": "resources/category.svg",
+  "CodePath": "dist/app.js",
+  "Type": "JavaScript",
+  "Inspect": "--inspect=127.0.0.1:9231",
+  "UUID": "com.ulanzi.ulanzistudio.hadeck",
+  "OS": [
+    { "Platform": "mac", "MinimumVersion": "10.15" },
+    { "Platform": "windows", "MinimumVersion": "10" }
+  ],
+  "Software": { "MinVersion": "3.3.0" },
+  "Actions": [
+    {
+      "Name": "HA Toggle",
+      "Icon": "resources/toggle.svg",
+      "Tooltip": "Toggle a Home Assistant entity and show its live state",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.toggle",
+      "PropertyInspectorPath": "property-inspector/toggle.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/toggle.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Keypad"],
+      "Devices": []
+    },
+    {
+      "Name": "HA Dial",
+      "Icon": "resources/dial.svg",
+      "Tooltip": "Control a value of a Home Assistant entity with a dial",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.dial",
+      "PropertyInspectorPath": "property-inspector/dial.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/dial.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Encoder"],
+      "Devices": [],
+      "Encoder": { "layout": "$UA1" }
+    },
+    {
+      "Name": "HA Dynamic Dial",
+      "Icon": "resources/dynamicdial.svg",
+      "Tooltip": "Controls the entity of a long-pressed HA Toggle key",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.dynamicdial",
+      "PropertyInspectorPath": "property-inspector/dynamic-dial.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/dynamicdial.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Encoder"],
+      "Devices": [],
+      "Encoder": { "layout": "$UA1" }
+    },
+    {
+      "Name": "HA Trigger",
+      "Icon": "resources/scene.svg",
+      "Tooltip": "Activate a scene or script, or trigger an automation",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.scene",
+      "PropertyInspectorPath": "property-inspector/scene.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/scene.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Keypad"],
+      "Devices": []
+    },
+    {
+      "Name": "HA Sensor",
+      "Icon": "resources/sensor.svg",
+      "Tooltip": "Show the value of a Home Assistant sensor",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.sensor",
+      "PropertyInspectorPath": "property-inspector/sensor.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/sensor.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Keypad"],
+      "Devices": []
+    },
+    {
+      "Name": "HA Service Call",
+      "Icon": "resources/service.svg",
+      "Tooltip": "Call any Home Assistant service",
+      "UUID": "com.ulanzi.ulanzistudio.hadeck.service",
+      "PropertyInspectorPath": "property-inspector/service.html",
+      "state": 0,
+      "States": [{ "Name": "Default", "Image": "resources/service.svg" }],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Controllers": ["Keypad"],
+      "Devices": []
+    }
+  ]
+}

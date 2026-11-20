@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HA Dynamic Dial</title>
+  <link rel="stylesheet" href="../libs/common-html/css/uspi.css">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+  <div class="uspi-wrapper">
+    <div id="hadeck-connection"></div>
+
+    <form id="property-inspector" autocomplete="off">
+      <div class="uspi-heading" data-localize>pi.heading.dynamicDial</div>
+      <div class="tip warn" data-localize>hint.oneDynamicDial</div>
+      <div class="hadeck-hint" data-localize>pi.dynamicDial.howTo</div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.stepFine</div>
+        <input class="uspi-item-value" type="number" name="stepFine" min="0" step="any"
+               data-localize="pi.default.attribute" placeholder="pi.default.attribute">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.stepCoarse</div>
+        <input class="uspi-item-value" type="number" name="stepCoarse" min="0" step="any"
+               data-localize="pi.default.attribute" placeholder="pi.default.attribute">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.offAtMin</div>
+        <select class="uspi-item-value" name="offAtMin">
+          <option value="true" data-localize="pi.yes">pi.yes</option>
+          <option value="false" data-localize="pi.no">pi.no</option>
+        </select>
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.editTimeout</div>
+        <input class="uspi-item-value" type="number" name="editTimeoutS" min="3" max="60" step="1" placeholder="10">
+      </div>
+    </form>
+  </div>
+
+  <script src="../libs/common-html/js/constants.js"></script>
+  <script src="../libs/common-html/js/eventEmitter.js"></script>
+  <script src="../libs/common-html/js/timers.js"></script>
+  <script src="../libs/common-html/js/utils.js"></script>
+  <script src="../libs/common-html/js/ulanziApi.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    HADeck.mountConnectionBlock('#hadeck-connection');
+    HADeck.bindForm('#property-inspector');
+    $UD.connect(HADeck.ACTION_PREFIX + 'dynamicdial');
+  </script>
+</body>
+</html>

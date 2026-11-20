@@ -1,0 +1,53 @@
+/* Additions to libs/common-html/css/uspi.css for HA Deck Property Inspectors. */
+
+.hadeck-buttons button {
+  margin-right: 8px;
+}
+
+#hadeck-status {
+  margin: 8px 0 16px;
+  word-break: break-word;
+}
+
+.hadeck-picker {
+  position: relative;
+  max-height: 180px;
+  overflow-y: auto;
+  margin: -4px 0 8px var(--uspi-label-width);
+  background: var(--uspi-inputbg);
+  border: 1px solid var(--uspi-bordercolor);
+  border-radius: var(--uspi-borderradius);
+}
+
+.hadeck-picker-row {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.hadeck-picker-row:hover {
+  background: var(--uspi-bordercolor);
+}
+
+.hadeck-picker-row small,
+.hadeck-picker-empty {
+  color: var(--uspi-unitcolor);
+}
+
+.hadeck-picker-empty {
+  padding: 4px 8px;
+}
+
+.hadeck-hint {
+  margin: 8px 0;
+  color: var(--uspi-unitcolor);
+  font-size: 12px;
+}
+
+textarea.uspi-item-value {
+  height: auto;
+  min-height: 64px;
+  resize: vertical;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
