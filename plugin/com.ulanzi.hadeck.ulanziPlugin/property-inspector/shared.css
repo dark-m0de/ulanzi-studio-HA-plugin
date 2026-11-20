@@ -44,3 +44,10 @@
   color: var(--uspi-unitcolor);
   font-size: 12px;
 }
+
+textarea.uspi-item-value {
+  height: auto;
+  min-height: 64px;
+  resize: vertical;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}

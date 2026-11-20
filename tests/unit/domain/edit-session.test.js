@@ -127,3 +127,18 @@ test('rotations from any registered dial apply to the same value in order of arr
   assert.deepEqual([d1.rotate('right'), d2.rotate('right'), d1.rotate('right'), d2.rotate('left')], [45, 50, 55, 50]);
   assert.equal(d1.displayValue(), d2.displayValue(), 'both dials show the same value');
 });
+
+test('media players, climates, covers and fans can be edited too (US5)', () => {
+  const { broker, e } = setup();
+  broker.registerDial('d');
+  for (const [entityId, attributeId] of [
+    ['media_player.living_room', 'media_player.volume'],
+    ['climate.office', 'climate.temperature'],
+    ['cover.blinds', 'cover.position'],
+    ['fan.bedroom', 'fan.percentage'],
+  ]) {
+    broker.start({ sourceContext: 'k', entity: e(entityId) });
+    assert.equal(broker.session.attributeId, attributeId, entityId);
+  }
+  assert.equal(broker.start({ sourceContext: 'k', entity: e('cover.garage') }), 'ineligible');
+});

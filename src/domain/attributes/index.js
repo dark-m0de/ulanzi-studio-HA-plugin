@@ -35,11 +35,18 @@ export function supportedAttributes(entity) {
   return ATTRIBUTES.filter((a) => a.domains.includes(entity.domain) && a.isSupported(entity));
 }
 
-const EDIT_ATTRIBUTE_BY_DOMAIN = { light: 'light.brightness' };
+// Edit-mode attribute per domain (contracts/ha-websocket.md, FR-032, FR-038).
+const EDIT_ATTRIBUTE_BY_DOMAIN = {
+  light: 'light.brightness',
+  media_player: 'media_player.volume',
+  climate: 'climate.temperature',
+  cover: 'cover.position',
+  fan: 'fan.percentage',
+};
 
 /**
  * The attribute a long press puts into edit mode for this entity, or null if the entity is not
- * eligible (FR-031/FR-032; extended to more domains in US5).
+ * eligible (FR-031/FR-032/FR-038).
  * @returns {ControllableAttribute | null}
  */
 export function editAttributeFor(entity) {

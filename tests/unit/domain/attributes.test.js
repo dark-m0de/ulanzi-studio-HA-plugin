@@ -139,3 +139,21 @@ test('number.value uses min/max/step and the entity domain for the service', () 
 test('getAttribute returns null for unknown ids', () => {
   assert.equal(getAttribute('light.nope'), null);
 });
+
+test('editAttributeFor maps each adjustable domain to its edit-mode attribute (US5)', async () => {
+  const { editAttributeFor } = await import('../../../src/domain/attributes/index.js');
+  const id = (entityId) => editAttributeFor(e(entityId))?.id ?? null;
+  assert.equal(id('light.living_room'), 'light.brightness');
+  assert.equal(id('media_player.living_room'), 'media_player.volume');
+  assert.equal(id('climate.office'), 'climate.temperature');
+  assert.equal(id('cover.blinds'), 'cover.position');
+  assert.equal(id('fan.bedroom'), 'fan.percentage');
+});
+
+test('editAttributeFor returns null for entities that are not eligible', async () => {
+  const { editAttributeFor } = await import('../../../src/domain/attributes/index.js');
+  for (const entityId of ['cover.garage', 'switch.coffee', 'light.hallway', 'input_number.volume_target', 'sensor.outdoor_temperature']) {
+    assert.equal(editAttributeFor(e(entityId)), null, entityId);
+  }
+  assert.equal(editAttributeFor(null), null);
+});

@@ -225,3 +225,41 @@ test('removing the last Dynamic Dial ends edit mode', async () => {
   assert.equal(h.app.editSession.session, null);
   assert.doesNotMatch(keyIcon(key), />EDIT</);
 });
+
+test('a long-pressed media player key → the Dynamic Dial sets volume_level 0–1 (US5)', async () => {
+  h = await createHarness();
+  const key = addKey('media_player.living_room');
+  const dyn = addDynamic('1_0');
+  holdKey();
+  releaseKey();
+  assert.match(keyIcon(key), />35%</);
+  rotateDynamic('right');
+  assert.match(dialSvgOf(dyn).svg, />40%</);
+  await waitFor(() => h.server.messages('call_service').length === 1);
+  const call = h.server.messages('call_service')[0];
+  assert.deepEqual([call.domain, call.service, call.service_data], ['media_player', 'volume_set', { volume_level: 0.4 }]);
+});
+
+test('a long-pressed climate key → set_temperature in 0.5 steps, clamped to 7–30 (US5)', async () => {
+  h = await createHarness();
+  addKey('climate.office');
+  const dyn = addDynamic('1_0');
+  holdKey();
+  releaseKey();
+  rotateDynamic('right');
+  assert.match(dialSvgOf(dyn).svg, />21.5°</);
+  for (let i = 0; i < 10; i++) rotateDynamic('hold-right');
+  assert.match(dialSvgOf(dyn).svg, />30°</);
+  await waitFor(() => h.server.messages('call_service').length === 1);
+  assert.deepEqual(h.server.messages('call_service')[0].service_data, { temperature: 21.5 });
+  h.clock.tick(200);
+  await waitFor(() => h.server.messages('call_service').length === 2);
+  assert.deepEqual(h.server.messages('call_service')[1].service_data, { temperature: 30 });
+});
+
+test('entity.capabilities reports long-press eligibility for the new domains', async () => {
+  h = await createHarness();
+  for (const [entityId, eligible] of [['media_player.living_room', true], ['climate.office', true], ['cover.blinds', true], ['fan.bedroom', true], ['cover.garage', false], ['switch.coffee', false]]) {
+    assert.equal((await h.piRequest('entity.capabilities', { entityId })).payload.longPressEligible, eligible, entityId);
+  }
+});

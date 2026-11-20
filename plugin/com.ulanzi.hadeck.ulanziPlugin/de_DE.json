@@ -87,7 +87,7 @@
     "hint.noDynamicDial": "Kein HA-Dynamischer-Drehknopf eingerichtet – lege ihn auf einen Drehknopf, um per Langdruck zu bearbeiten.",
     "hint.oneDynamicDial": "Nur einen Dynamischen Drehknopf pro Gerät verwenden. Weitere steuern alle denselben Wert.",
     "pi.heading.dynamicDial": "Dynamischer Drehknopf",
-    "pi.dynamicDial.howTo": "Halte eine HA-Schalter-Taste mit einem dimmbaren Licht gedrückt, um seine Helligkeit mit diesem Drehknopf zu ändern.",
+    "pi.dynamicDial.howTo": "Halte eine HA-Schalter-Taste gedrückt, um ihren Wert mit diesem Drehknopf zu steuern: Helligkeit (Lichter), Lautstärke (Media Player), Zieltemperatur (Thermostate), Position (Rollläden) oder Geschwindigkeit (Ventilatoren).",
     "pi.default.attribute": "Standard des bearbeiteten Werts",
     "pi.editTimeout": "Bearbeiten beenden nach (s)",
     "pi.longPress.heading": "Langer Druck",
@@ -96,13 +96,22 @@
     "pi.longPress.disabled": "Wie kurzer Druck",
     "pi.longPress.entity": "Andere Entität schalten",
     "pi.longPress.service": "Dienst aufrufen",
-    "pi.longPress.editHint": "Lichter: Taste halten, dann den HA-Dynamischen-Drehknopf drehen, um die Helligkeit zu ändern. Andere Entitäten werden geschaltet.",
+    "pi.longPress.editHint": "Taste halten, dann den HA-Dynamischen-Drehknopf drehen: Helligkeit bei Lichtern, Lautstärke, Temperatur, Position oder Lüftergeschwindigkeit. Entitäten ohne solchen Wert werden geschaltet.",
     "pi.longPress.entityId": "Entität",
     "pi.longPress.ms": "Haltedauer (ms)",
     "pi.service.domain": "Domäne",
     "pi.service.name": "Dienst",
     "pi.service.target": "Ziel-Entitäten",
     "pi.service.data": "Daten (JSON)",
-    "error.invalidJson": "Daten müssen ein JSON-Objekt sein, z. B. {\"brightness_pct\": 100}"
+    "error.invalidJson": "Daten müssen ein JSON-Objekt sein, z. B. {\"brightness_pct\": 100}",
+    "status.run": "Start",
+    "status.done": "OK",
+    "status.invalid": "Ungültig",
+    "pi.heading.trigger": "Szene / Skript / Automation",
+    "pi.heading.sensor": "Sensor",
+    "pi.heading.service": "Dienstaufruf",
+    "pi.sensor.warnAbove": "Warnen über",
+    "pi.sensor.warnBelow": "Warnen unter",
+    "pi.sensor.warnHint": "Die Taste wird orange, wenn der Wert über oder unter diesen Grenzen liegt."
   }
 }

@@ -319,14 +319,14 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 5 ⚠️ write first, must fail
 
-- [ ] T078 [P] [US5] Extend `tests/unit/domain/edit-session.test.js` and `tests/unit/domain/attributes.test.js` for `editAttributeFor`:
+- [X] T078 [P] [US5] Extend `tests/unit/domain/edit-session.test.js` and `tests/unit/domain/attributes.test.js` for `editAttributeFor`:
   - media_player → `media_player.volume`, climate → `climate.temperature`, cover with SET_POSITION → `cover.position`, fan with SET_SPEED → `fan.percentage`
   - a cover without SET_POSITION and a switch → `null` (not eligible)
-- [ ] T079 [P] [US5] Extend `tests/integration/adapter/dynamic-dial.test.js`: a long-pressed media player key → rotation sends `media_player.volume_set` with a 0–1 `volume_level`; a climate key → `climate.set_temperature` in 0.5 steps clamped to 7–30
+- [X] T079 [P] [US5] Extend `tests/integration/adapter/dynamic-dial.test.js`: a long-pressed media player key → rotation sends `media_player.volume_set` with a 0–1 `volume_level`; a climate key → `climate.set_temperature` in 0.5 steps clamped to 7–30
 
 ### Implementation for User Story 5
 
-- [ ] T080 [US5] Extend `editAttributeFor` in `src/domain/attributes/index.js` to the domain mapping in [contracts/ha-websocket.md](contracts/ha-websocket.md) (edit-mode attribute per domain) so that T078 and T079 pass. Verify that `entity.capabilities.longPressEligible` in `src/adapter/pi-bridge.js` reflects the extension.
+- [X] T080 [US5] Extend `editAttributeFor` in `src/domain/attributes/index.js` to the domain mapping in [contracts/ha-websocket.md](contracts/ha-websocket.md) (edit-mode attribute per domain) so that T078 and T079 pass. Verify that `entity.capabilities.longPressEligible` in `src/adapter/pi-bridge.js` reflects the extension.
 
 **Checkpoint**: Edit mode covers all adjustable domains.
 
@@ -340,22 +340,22 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 6 ⚠️ write first, must fail
 
-- [ ] T081 [P] [US6] Extend `tests/unit/domain/render/key-model.test.js` with `triggerModel` (label, `trigger` style, a confirmation flash state), `sensorModel` (value + unit, `warn` style when outside `warnAbove`/`warnBelow`, unavailable) and `serviceModel`
-- [ ] T082 [P] [US6] Write `tests/integration/adapter/scene.test.js`: `onRun` sends `scene.turn_on` / `script.turn_on` / `automation.trigger` depending on the domain, the key shows confirmation for about 1 s, and an error triggers `showAlert` plus a `logMessage` at `warn` level
-- [ ] T083 [P] [US6] Write `tests/integration/adapter/sensor.test.js`: renders value + unit on add, re-renders on `state_changed` with the warn style beyond the thresholds; `onRun` does nothing
-- [ ] T084 [P] [US6] Write `tests/integration/adapter/service.test.js`: `onRun` sends `call_service` with exactly the configured domain/service/target/data; invalid JSON data in the settings renders the error style instead of calling; an error result triggers `showAlert` plus a `logMessage` at `warn` level
+- [X] T081 [P] [US6] Extend `tests/unit/domain/render/key-model.test.js` with `triggerModel` (label, `trigger` style, a confirmation flash state), `sensorModel` (value + unit, `warn` style when outside `warnAbove`/`warnBelow`, unavailable) and `serviceModel`
+- [X] T082 [P] [US6] Write `tests/integration/adapter/scene.test.js`: `onRun` sends `scene.turn_on` / `script.turn_on` / `automation.trigger` depending on the domain, the key shows confirmation for about 1 s, and an error triggers `showAlert` plus a `logMessage` at `warn` level
+- [X] T083 [P] [US6] Write `tests/integration/adapter/sensor.test.js`: renders value + unit on add, re-renders on `state_changed` with the warn style beyond the thresholds; `onRun` does nothing
+- [X] T084 [P] [US6] Write `tests/integration/adapter/service.test.js`: `onRun` sends `call_service` with exactly the configured domain/service/target/data; invalid JSON data in the settings renders the error style instead of calling; an error result triggers `showAlert` plus a `logMessage` at `warn` level
 
 ### Implementation for User Story 6
 
-- [ ] T085 [US6] Add `triggerModel`, `sensorModel` and `serviceModel` to `src/domain/render/key-model.js` so that T081 passes
-- [ ] T086 [P] [US6] Implement `src/adapter/actions/scene.js` and register it in `src/adapter/app.js` so that T082 passes
-- [ ] T087 [P] [US6] Implement `src/adapter/actions/sensor.js` and register it in `src/adapter/app.js` so that T083 passes
-- [ ] T088 [P] [US6] Implement `src/adapter/actions/service.js` and register it in `src/adapter/app.js` so that T084 passes
-- [ ] T089 [P] [US6] Create the Property Inspector pages:
+- [X] T085 [US6] Add `triggerModel`, `sensorModel` and `serviceModel` to `src/domain/render/key-model.js` so that T081 passes
+- [X] T086 [P] [US6] Implement `src/adapter/actions/scene.js` and register it in `src/adapter/app.js` so that T082 passes
+- [X] T087 [P] [US6] Implement `src/adapter/actions/sensor.js` and register it in `src/adapter/app.js` so that T083 passes
+- [X] T088 [P] [US6] Implement `src/adapter/actions/service.js` and register it in `src/adapter/app.js` so that T084 passes
+- [X] T089 [P] [US6] Create the Property Inspector pages:
   - `plugin/…/property-inspector/scene.html`: entity picker restricted to scene/script/automation, label
   - `plugin/…/property-inspector/sensor.html`: entity picker restricted to the `sensor` domain, label, warn thresholds
   - `plugin/…/property-inspector/service.html`: label, domain, service, target entities, JSON data textarea with inline validation
-- [ ] T090 [P] [US6] Add the keys for the scene, sensor and service actions (`pi.scene.*`, `pi.sensor.*`, `pi.service.*`, `error.invalidJson`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
+- [X] T090 [P] [US6] Add the keys for the scene, sensor and service actions (`pi.scene.*`, `pi.sensor.*`, `pi.service.*`, `error.invalidJson`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
 
 **Checkpoint**: All user stories are complete.
 
@@ -365,21 +365,21 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 **Purpose**: Constitution compliance checks, documentation, packaging and end-to-end validation
 
-- [ ] T091 [P] Write `tests/unit/locales.test.js`:
+- [X] T091 [P] Write `tests/unit/locales.test.js`:
   - every key in `en.json` `Localization` exists in `de_DE.json` and the reverse
   - `Actions[]` lengths match the manifest
   - every `data-localize` key used in `plugin/…/property-inspector/*.html` and every key passed to `t()` in `src/` exists (FR-041, Platform Constraints)
-- [ ] T092 [P] Write `tests/unit/architecture.test.js`: no file in `src/ha/` or `src/domain/` imports `ulanzideck-api`, `ws` or anything from `src/adapter/` (Principle II), and no source file contains `http(s)://` URLs other than in tests and documentation (Principle V, single host)
-- [ ] T093 [P] Write `README.md` in the repository root with these sections:
+- [X] T092 [P] Write `tests/unit/architecture.test.js`: no file in `src/ha/` or `src/domain/` imports `ulanzideck-api`, `ws` or anything from `src/adapter/` (Principle II), and no source file contains `http(s)://` URLs other than in tests and documentation (Principle V, single host)
+- [X] T093 [P] Write `README.md` in the repository root with these sections:
   - features and supported devices
   - installation
   - creating a long-lived token
   - the "one Dynamic Dial" recommendation
   - development (`npm test`, `npm run build`, `npm run dev:link`, debugging flags)
   - license (Apache-2.0) and trademark notice
-- [ ] T094 Remove `src/adapter/spike.js` and any `HADECK_SPIKE` handling left over from T035, and make sure research.md holds the final V-01…V-07 results
-- [ ] T095 Audit the licenses of all shipped dependencies (`npm ls --omit=dev --all` plus the vendored `libs/common-html`) against the allowlist in the constitution, and make sure `NOTICE` is complete
-- [ ] T096 Run `npm test` and confirm that coverage of `src/ha/` and `src/domain/` is at least 90 % of lines. Add any missing tests for uncovered branches in those layers.
+- [X] T094 Remove `src/adapter/spike.js` and any `HADECK_SPIKE` handling left over from T035, and make sure research.md holds the final V-01…V-07 results
+- [X] T095 Audit the licenses of all shipped dependencies (`npm ls --omit=dev --all` plus the vendored `libs/common-html`) against the allowlist in the constitution, and make sure `NOTICE` is complete
+- [X] T096 Run `npm test` and confirm that coverage of `src/ha/` and `src/domain/` is at least 90 % of lines. Add any missing tests for uncovered branches in those layers.
 - [ ] T097 Run the full validation scenarios 1–8 from [quickstart.md](quickstart.md) on a D200X with Ulanzi Studio on macOS **and** Windows, and record the results (date, Studio version, HA version, pass/fail per scenario) in `specs/001-ha-deck-plugin/validation.md`. Include the SC-001 setup time from scenario 1 (fresh install → first light key working, target < 3 min), the SC-002 measurement from scenario 2 (20 state changes made in the HA UI, at least 19 visible on the key within 1 s), the SC-003 timing measurement from scenario 3 (detent → `setFeedback` < 100 ms, last detent → HA state with the final value ≤ 500 ms, taken from debug-log timestamps) and the persistence check from scenario 8 (FR-042).
 - [ ] T098 Run the 24 h stability check (quickstart scenario 9, SC-007) with 30 bound actions. Record the RSS of the plugin process after 1 h and after 24 h in `specs/001-ha-deck-plugin/validation.md`; pass if there is no crash and the 24 h value is at most 20 % above the 1 h value.
 - [ ] T099 Run `npm run package`, install the resulting `com.ulanzi.hadeck.ulanziPlugin.zip` on a clean Ulanzi Studio, and verify that `LICENSE` and `NOTICE` are inside the plugin folder

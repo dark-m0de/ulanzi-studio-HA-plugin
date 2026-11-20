@@ -20,6 +20,10 @@ const en = {
   'status.edit': 'EDIT',
   'hint.longPress': 'Hold a key',
   'hint.noDynamicDial': 'No Dynamic Dial',
+  'status.run': 'Run',
+  'status.done': 'OK',
+  'status.invalid': 'Invalid',
+  'status.setup': 'Setup',
 };
 
 /**

@@ -87,7 +87,7 @@
     "hint.noDynamicDial": "No HA Dynamic Dial configured – assign one to a dial to edit with long press.",
     "hint.oneDynamicDial": "Use only one Dynamic Dial per device. If you add more, they all control the same value.",
     "pi.heading.dynamicDial": "Dynamic Dial",
-    "pi.dynamicDial.howTo": "Long-press an HA Toggle key with a dimmable light to control its brightness with this dial.",
+    "pi.dynamicDial.howTo": "Long-press an HA Toggle key to control its value with this dial: brightness (lights), volume (media players), target temperature (thermostats), position (covers) or speed (fans).",
     "pi.default.attribute": "Default of the edited value",
     "pi.editTimeout": "Edit mode timeout (s)",
     "pi.longPress.heading": "Long press",
@@ -96,13 +96,22 @@
     "pi.longPress.disabled": "Same as short press",
     "pi.longPress.entity": "Toggle another entity",
     "pi.longPress.service": "Call a service",
-    "pi.longPress.editHint": "Lights: hold the key, then turn the HA Dynamic Dial to change the brightness. Other entities are toggled.",
+    "pi.longPress.editHint": "Hold the key, then turn the HA Dynamic Dial: brightness for lights, volume, temperature, position or fan speed. Entities without such a value are toggled.",
     "pi.longPress.entityId": "Entity",
     "pi.longPress.ms": "Hold time (ms)",
     "pi.service.domain": "Domain",
     "pi.service.name": "Service",
     "pi.service.target": "Target entities",
     "pi.service.data": "Data (JSON)",
-    "error.invalidJson": "Data must be a JSON object, e.g. {\"brightness_pct\": 100}"
+    "error.invalidJson": "Data must be a JSON object, e.g. {\"brightness_pct\": 100}",
+    "status.run": "Run",
+    "status.done": "OK",
+    "status.invalid": "Invalid",
+    "pi.heading.trigger": "Scene / script / automation",
+    "pi.heading.sensor": "Sensor",
+    "pi.heading.service": "Service call",
+    "pi.sensor.warnAbove": "Warn above",
+    "pi.sensor.warnBelow": "Warn below",
+    "pi.sensor.warnHint": "The key turns orange when the value is above or below these limits."
   }
 }
