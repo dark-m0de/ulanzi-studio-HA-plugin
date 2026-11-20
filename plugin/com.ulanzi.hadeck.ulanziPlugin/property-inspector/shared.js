@@ -22,7 +22,9 @@
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         pending.delete(id);
-        reject({ key: 'error.timeout' });
+        // No reply at all means the plugin's main service is not running (HA timeouts are
+        // reported by the main service itself as error.timeout).
+        reject({ key: 'error.noPlugin' });
       }, timeoutMs || 10000);
       pending.set(id, { resolve, reject, timer });
       $UD.sendToPlugin({ v: 1, type, id, payload: payload || {} });
@@ -144,7 +146,9 @@
 
     onPush('connection.changed', renderStatus);
     $UD.onConnected(() => {
-      request('connection.status').then(renderStatus).catch(() => {});
+      request('connection.status')
+        .then(renderStatus)
+        .catch((err) => show('error', t((err && err.key) || 'error.noPlugin')));
     });
   }
 
