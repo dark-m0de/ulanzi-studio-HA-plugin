@@ -19,9 +19,21 @@ The display reacts immediately to every dial detent; Home Assistant receives at 
 per second per entity, and the final value always arrives. The plugin reconnects automatically
 after Home Assistant restarts. The UI is available in English and German.
 
-### Supported devices
+### Supported Ulanzi decks
 
-Key actions work on every Ulanzi Deck model. Dial actions need a device with dials (D200X).
+The plugin runs in Ulanzi Studio and supports every device type the Ulanzi plugin SDK knows
+(`D200`, `D200H`, `D200X`, `Dial`). Which actions you can use depends on the hardware:
+
+| Device | Key actions (Toggle, Trigger, Sensor, Service Call) | Dial actions (HA Dial, HA Dynamic Dial) | Tested |
+|---|---|---|---|
+| **Ulanzi D200X** (keys + 3 dials) | ✅ | ✅ | ✅ |
+| Ulanzi D200 | ✅ | – (no dials) | not yet |
+| Ulanzi D200H | ✅ | if the model has dials | not yet |
+| Ulanzi Dial (SDK device type `Dial`) | if the device has keys | ✅ | not yet |
+
+Dial actions can only be placed on dials, so they do not appear on key-only decks. Long-press
+editing with the Dynamic Dial needs a deck with at least one dial. Reports from other models are
+welcome as [issues](https://github.com/dark-m0de/ulanzi-studio-HA-plugin/issues).
 
 ### Requirements
 
@@ -30,11 +42,18 @@ Key actions work on every Ulanzi Deck model. Dial actions need a device with dia
 
 ## Installation
 
-1. Download `com.ulanzi.hadeck.ulanziPlugin.zip` and unzip it.
-2. Quit Ulanzi Studio and copy the folder `com.ulanzi.hadeck.ulanziPlugin` into the plugins directory:
+1. Download **`com.ulanzi.hadeck.ulanziPlugin.zip`** from the
+   [latest release](https://github.com/dark-m0de/ulanzi-studio-HA-plugin/releases/latest)
+   (direct link: [com.ulanzi.hadeck.ulanziPlugin.zip](https://github.com/dark-m0de/ulanzi-studio-HA-plugin/releases/latest/download/com.ulanzi.hadeck.ulanziPlugin.zip)).
+   All versions are listed on the [releases page](https://github.com/dark-m0de/ulanzi-studio-HA-plugin/releases).
+2. Quit Ulanzi Studio and unzip the file into the plugins directory, so that the folder
+   `com.ulanzi.hadeck.ulanziPlugin` ends up directly inside it:
    - macOS: `~/Library/Application Support/Ulanzi/UlanziDeck/Plugins`
    - Windows: `%APPDATA%\Ulanzi\UlanziDeck\Plugins`
 3. Start Ulanzi Studio. The actions appear in the category **Home Assistant**.
+
+To update, quit Ulanzi Studio, replace the folder with the one from the new zip and start Ulanzi
+Studio again. Your key and dial settings and the connection are kept.
 
 ### Connect to Home Assistant
 
@@ -73,6 +92,31 @@ npm run package     # builds com.ulanzi.hadeck.ulanziPlugin.zip (includes LICENS
 - Specification, plan and tasks live in [`specs/001-ha-deck-plugin`](specs/001-ha-deck-plugin)
   ([spec-kit](https://github.com/github/spec-kit)); project principles in
   [`.specify/memory/constitution.md`](.specify/memory/constitution.md).
+
+### Continuous integration and releases
+
+- **Tests on every pull request**: `.github/workflows/test.yml` runs `npm test` and `npm run build`
+  on Linux, macOS and Windows. The job **All tests passed** is green only if all of them succeed.
+- **Merge protection**: `.github/rulesets/main.json` protects the default branch: changes need a
+  pull request and the check **All tests passed** must be green (and up to date) before merging.
+  Apply it once (needs admin rights on the repository):
+
+  ```bash
+  gh api repos/dark-m0de/ulanzi-studio-HA-plugin/rulesets --method POST --input .github/rulesets/main.json
+  ```
+
+  or in the browser under *Settings → Rules → Rulesets → New ruleset → Import a ruleset*.
+- **Releases**: `.github/workflows/release.yml` runs when a version tag is pushed. It runs the full
+  test matrix, checks that the tag matches the versions in `package.json` and `manifest.json`,
+  builds the zip and uploads it to the GitHub release. Tags with a suffix (e.g. `v0.2.0-beta.1`)
+  become pre-releases.
+
+  To publish version 0.2.0: set `"version": "0.2.0"` in `package.json` and `"Version": "0.2.0"` in
+  `plugin/com.ulanzi.hadeck.ulanziPlugin/manifest.json`, merge, then tag the merged commit:
+
+  ```bash
+  git tag v0.2.0 && git push origin v0.2.0
+  ```
 
 ## License
 

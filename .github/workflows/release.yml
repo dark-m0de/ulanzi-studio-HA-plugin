@@ -1,0 +1,62 @@
+name: release
+
+# Push a tag like v0.2.0 to publish a GitHub release with the plugin zip.
+# The tag must match "version" in package.json and "Version" in manifest.json.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.12'
+          cache: npm
+      - run: npm ci
+
+      - name: Check that tag and versions match
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          MANIFEST_VERSION="$(node -p "require('./plugin/com.ulanzi.hadeck.ulanziPlugin/manifest.json').Version")"
+          echo "tag=$TAG_VERSION package.json=$PKG_VERSION manifest.json=$MANIFEST_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ] || [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($PKG_VERSION) and manifest.json ($MANIFEST_VERSION)."
+            exit 1
+          fi
+
+      - name: Build plugin zip
+        run: npm run package
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ZIP=com.ulanzi.hadeck.ulanziPlugin.zip
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ZIP" --clobber
+          else
+            PRERELEASE=""
+            case "$GITHUB_REF_NAME" in *-*) PRERELEASE="--prerelease" ;; esac
+            gh release create "$GITHUB_REF_NAME" "$ZIP" \
+              --title "HA Deck $GITHUB_REF_NAME" \
+              --generate-notes \
+              --verify-tag \
+              $PRERELEASE
+          fi
