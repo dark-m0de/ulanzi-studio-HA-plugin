@@ -41,6 +41,15 @@ async function writeThirdPartyLicenses() {
 }
 await writeThirdPartyLicenses();
 
+// dist/app.js is an ES module. Ulanzi Studio runs it with Node 20.12, which only treats a .js
+// file as ESM when the nearest package.json says so. Without this file the installed plugin
+// crashes with "Cannot use import statement outside a module" (it only worked in development
+// because the dev-link symlink resolves to this repository's package.json).
+await writeFile(
+  join(root, 'plugin/com.ulanzi.hadeck.ulanziPlugin/dist/package.json'),
+  `${JSON.stringify({ type: 'module', private: true }, null, 2)}\n`,
+);
+
 if (process.argv.includes('--watch')) {
   const ctx = await context(options);
   await ctx.watch();

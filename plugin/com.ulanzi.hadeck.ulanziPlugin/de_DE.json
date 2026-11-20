@@ -112,6 +112,7 @@
     "pi.heading.service": "Dienstaufruf",
     "pi.sensor.warnAbove": "Warnen über",
     "pi.sensor.warnBelow": "Warnen unter",
-    "pi.sensor.warnHint": "Die Taste wird orange, wenn der Wert über oder unter diesen Grenzen liegt."
+    "pi.sensor.warnHint": "Die Taste wird orange, wenn der Wert über oder unter diesen Grenzen liegt.",
+    "error.noPlugin": "Der Dienst des HA-Deck-Plugins antwortet nicht. Ulanzi Studio neu starten; hilft das nicht, das Plugin neu installieren und das Plugin-Log prüfen."
   }
 }

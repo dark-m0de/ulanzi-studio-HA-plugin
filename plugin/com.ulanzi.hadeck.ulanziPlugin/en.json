@@ -112,6 +112,7 @@
     "pi.heading.service": "Service call",
     "pi.sensor.warnAbove": "Warn above",
     "pi.sensor.warnBelow": "Warn below",
-    "pi.sensor.warnHint": "The key turns orange when the value is above or below these limits."
+    "pi.sensor.warnHint": "The key turns orange when the value is above or below these limits.",
+    "error.noPlugin": "The HA Deck plugin service is not responding. Restart Ulanzi Studio; if that does not help, reinstall the plugin and check the plugin log."
   }
 }
