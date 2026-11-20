@@ -40,3 +40,7 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# --- Plugin packaging (copied by scripts/package.mjs) ----------------------------
+plugin/com.ulanzi.hadeck.ulanziPlugin/LICENSE
+plugin/com.ulanzi.hadeck.ulanziPlugin/NOTICE

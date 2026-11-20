@@ -30,19 +30,19 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 **Purpose**: Project initialisation, tooling and the plugin folder skeleton
 
-- [ ] T001 Create `package.json` at the repository root with `"type": "module"`, `"license": "Apache-2.0"`, `"engines": { "node": ">=20.12" }`, the dependency `"ulanzideck-api": "github:UlanziTechnology/plugin-common-node#<commit-sha>"` (pin the current main commit, research R-03), the explicit dependency `ws` (same major as required by `ulanzideck-api`, because `src/adapter` and the tests import it directly) and the devDependency `esbuild`. Add the scripts `test` (`node --test --experimental-test-coverage` without a glob argument: Node 20 does not expand globs for `--test` and instead discovers `**/*.test.js` itself, excluding `node_modules`), `build` (`node scripts/build.mjs`), `package` (`node scripts/package.mjs`) and `dev:link` (`node scripts/dev-link.mjs`). Then run `npm install` to create `package-lock.json`.
-- [ ] T002 [P] Create `.nvmrc` with `20` and `.editorconfig` (2-space indent, LF, UTF-8, final newline) in the repository root
-- [ ] T003 [P] Create `scripts/build.mjs`: esbuild bundles `src/adapter/app.js` → `plugin/com.ulanzi.hadeck.ulanziPlugin/dist/app.js` with `platform: 'node'`, `target: 'node20.12'`, `format: 'esm'`, `bundle: true`, `external: ['bufferutil', 'utf-8-validate']` (optional native add-ons of `ws`; without this esbuild fails with "Could not resolve") and a `createRequire` banner for CJS deps. It supports a `--watch` flag (research R-02).
-- [ ] T004 [P] Create `scripts/dev-link.mjs`: it symlinks (Windows: directory junction) `plugin/com.ulanzi.hadeck.ulanziPlugin` into the Ulanzi Studio plugins directory. Defaults: macOS `~/Library/Application Support/Ulanzi/UlanziDeck/Plugins`, Windows `%APPDATA%\Ulanzi\UlanziDeck\Plugins`; `HADECK_PLUGIN_DIR` overrides the target (research V-07). It prints the target and refuses to overwrite a non-symlink folder.
-- [ ] T005 [P] Create `scripts/package.mjs`: it runs the build, copies `LICENSE` and `NOTICE` into `plugin/com.ulanzi.hadeck.ulanziPlugin/` and zips the folder to `com.ulanzi.hadeck.ulanziPlugin.zip` (Node built-ins only; zip via the system `zip`/`tar -a` command with a clear error if it is missing)
-- [ ] T006 [P] Vendor UlanziTechnology/plugin-common-html into `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/` (only the files the Property Inspector needs) and record the source commit and license in `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/SOURCE.md`
-- [ ] T007 Create `plugin/com.ulanzi.hadeck.ulanziPlugin/manifest.json` exactly as in [contracts/plugin-actions.md](contracts/plugin-actions.md):
+- [X] T001 Create `package.json` at the repository root with `"type": "module"`, `"license": "Apache-2.0"`, `"engines": { "node": ">=20.12" }`, the dependency `"ulanzideck-api": "github:UlanziTechnology/plugin-common-node#<commit-sha>"` (pin the current main commit, research R-03), the explicit dependency `ws` (same major as required by `ulanzideck-api`, because `src/adapter` and the tests import it directly) and the devDependency `esbuild`. Add the scripts `test` (`node --test --experimental-test-coverage` without a glob argument: Node 20 does not expand globs for `--test` and instead discovers `**/*.test.js` itself, excluding `node_modules`), `build` (`node scripts/build.mjs`), `package` (`node scripts/package.mjs`) and `dev:link` (`node scripts/dev-link.mjs`). Then run `npm install` to create `package-lock.json`.
+- [X] T002 [P] Create `.nvmrc` with `20` and `.editorconfig` (2-space indent, LF, UTF-8, final newline) in the repository root
+- [X] T003 [P] Create `scripts/build.mjs`: esbuild bundles `src/adapter/app.js` → `plugin/com.ulanzi.hadeck.ulanziPlugin/dist/app.js` with `platform: 'node'`, `target: 'node20.12'`, `format: 'esm'`, `bundle: true`, `external: ['bufferutil', 'utf-8-validate']` (optional native add-ons of `ws`; without this esbuild fails with "Could not resolve") and a `createRequire` banner for CJS deps. It supports a `--watch` flag (research R-02).
+- [X] T004 [P] Create `scripts/dev-link.mjs`: it symlinks (Windows: directory junction) `plugin/com.ulanzi.hadeck.ulanziPlugin` into the Ulanzi Studio plugins directory. Defaults: macOS `~/Library/Application Support/Ulanzi/UlanziDeck/Plugins`, Windows `%APPDATA%\Ulanzi\UlanziDeck\Plugins`; `HADECK_PLUGIN_DIR` overrides the target (research V-07). It prints the target and refuses to overwrite a non-symlink folder.
+- [X] T005 [P] Create `scripts/package.mjs`: it runs the build, copies `LICENSE` and `NOTICE` into `plugin/com.ulanzi.hadeck.ulanziPlugin/` and zips the folder to `com.ulanzi.hadeck.ulanziPlugin.zip` (Node built-ins only; zip via the system `zip`/`tar -a` command with a clear error if it is missing)
+- [X] T006 [P] Vendor UlanziTechnology/plugin-common-html into `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/` (only the files the Property Inspector needs) and record the source commit and license in `plugin/com.ulanzi.hadeck.ulanziPlugin/libs/common-html/SOURCE.md`
+- [X] T007 Create `plugin/com.ulanzi.hadeck.ulanziPlugin/manifest.json` exactly as in [contracts/plugin-actions.md](contracts/plugin-actions.md):
   - top-level fields `UUID com.ulanzi.ulanzistudio.hadeck`, `CodePath dist/app.js`, `Type JavaScript`, `Software.MinVersion 3.3.0`, `OS`, `Category`, `Inspect --inspect=127.0.0.1:9231`
   - all six actions with their UUIDs, `Controllers`, `"Devices": []`, `Encoder.layout "$UA1"` for `.dial`/`.dynamicdial`, `PropertyInspectorPath`, `SupportedInMultiActions: false`, `DisableAutomaticStates: true`, and a single default state image each
-- [ ] T008 [P] Create `plugin/com.ulanzi.hadeck.ulanziPlugin/en.json` and `plugin/com.ulanzi.hadeck.ulanziPlugin/de_DE.json` with `Name`, `Description`, an `Actions[]` array (index-aligned with the manifest: Name, Tooltip) and an empty `Localization` object (research R-15)
-- [ ] T009 [P] Design and add the plugin, category and per-action icons as own SVGs in `plugin/com.ulanzi.hadeck.ulanziPlugin/resources/` (`plugin.svg`, `category.svg`, `toggle.svg`, `dial.svg`, `dynamicdial.svg`, `scene.svg`, `sensor.svg`, `service.svg`). Do not reproduce the Home Assistant logo (constitution: Licensing & Code Provenance).
-- [ ] T010 [P] Update `NOTICE` in the repository root: list `ulanzideck-api` / plugin-common-node (Apache-2.0, UlanziTechnology), plugin-common-html (Apache-2.0, UlanziTechnology) and `ws` (MIT, Einar Otto Stangvik and contributors), with source URLs, and carry over any NOTICE content they ship
-- [ ] T011 [P] Create the CI workflow `.github/workflows/test.yml`: on push/PR, matrix `ubuntu-latest`, `macos-latest`, `windows-latest` with Node 20.12; it runs `npm ci`, `npm test` and `npm run build`
+- [X] T008 [P] Create `plugin/com.ulanzi.hadeck.ulanziPlugin/en.json` and `plugin/com.ulanzi.hadeck.ulanziPlugin/de_DE.json` with `Name`, `Description`, an `Actions[]` array (index-aligned with the manifest: Name, Tooltip) and an empty `Localization` object (research R-15)
+- [X] T009 [P] Design and add the plugin, category and per-action icons as own SVGs in `plugin/com.ulanzi.hadeck.ulanziPlugin/resources/` (`plugin.svg`, `category.svg`, `toggle.svg`, `dial.svg`, `dynamicdial.svg`, `scene.svg`, `sensor.svg`, `service.svg`). Do not reproduce the Home Assistant logo (constitution: Licensing & Code Provenance).
+- [X] T010 [P] Update `NOTICE` in the repository root: list `ulanzideck-api` / plugin-common-node (Apache-2.0, UlanziTechnology), plugin-common-html (Apache-2.0, UlanziTechnology) and `ws` (MIT, Einar Otto Stangvik and contributors), with source URLs, and carry over any NOTICE content they ship
+- [X] T011 [P] Create the CI workflow `.github/workflows/test.yml`: on push/PR, matrix `ubuntu-latest`, `macos-latest`, `windows-latest` with Node 20.12; it runs `npm ci`, `npm test` and `npm run build`
 
 ---
 
@@ -54,19 +54,19 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Test harness
 
-- [ ] T012 [P] Create `tests/support/fake-ha-server.js`: a `ws` `WebSocketServer` on a random port that scripts the HA protocol from [contracts/ha-websocket.md](contracts/ha-websocket.md).
+- [X] T012 [P] Create `tests/support/fake-ha-server.js`: a `ws` `WebSocketServer` on a random port that scripts the HA protocol from [contracts/ha-websocket.md](contracts/ha-websocket.md).
   - Protocol: `auth_required`, then accept/reject a configured token, reply to `get_states` from the fixtures, handle `subscribe_events`, `call_service`, `ping`/`pong`.
   - Helpers: `emitStateChanged(entityId, newState)`, `failNextCall(code)`, `stopResponding()` (for timeouts and dead sockets), `restart()`, `close()`, plus a record of all received messages for assertions.
-- [ ] T013 [P] Create `tests/support/fake-ud.js`: a fake of the `common-node` `$UD` API.
+- [X] T013 [P] Create `tests/support/fake-ud.js`: a fake of the `common-node` `$UD` API.
   - It records every emitted command (`setBaseDataIcon`, `setFeedbackLayout`, `setFeedback`, `showAlert`, `toast`, `sendToPropertyInspector`, `setGlobalSettings`, `logMessage`) and exposes `emit(eventName, message)` for every `on*` handler listed in [contracts/plugin-actions.md](contracts/plugin-actions.md).
   - It provides `encodeContext`/`decodeContext` with the `uuid___key___actionid` format.
-- [ ] T014 [P] Create the HA state fixtures `tests/support/fixtures/states.json`: dimmable light (on, brightness 102), on/off-only light, colour-temperature light (kelvin bounds), switch, fan (`percentage_step` 10), cover with SET_POSITION, cover without it, media player with VOLUME_SET (playing, volume 0.35), climate (min 7, max 30, step 0.5, heat), `input_number` (0–10 step 0.5), sensor with unit °C, scene, script, automation
+- [X] T014 [P] Create the HA state fixtures `tests/support/fixtures/states.json`: dimmable light (on, brightness 102), on/off-only light, colour-temperature light (kelvin bounds), switch, fan (`percentage_step` 10), cover with SET_POSITION, cover without it, media player with VOLUME_SET (playing, volume 0.35), climate (min 7, max 30, step 0.5, heat), `input_number` (0–10 step 0.5), sensor with unit °C, scene, script, automation
 
 ### Tests first (must fail before the implementation below)
 
-- [ ] T015 [P] Write `tests/unit/ha/backoff.test.js`: delays 1 s, 2 s, 4 s, … capped at 30 s; `reset()` after success; `stop()` puts it into a no-retry state that only `reset()` leaves (FR-004, FR-005)
-- [ ] T016 [P] Write `tests/unit/ha/messages.test.js`: http→ws / https→wss URL building including base paths and trailing slashes; invalid URL detection; builders for `auth`, `get_states`, `subscribe_events`, `call_service`, `ping`; parsing of `result`/`event`/`pong`
-- [ ] T017 [P] Write `tests/integration/ha/client.test.js` against the fake HA server, with `mock.timers` where time matters:
+- [X] T015 [P] Write `tests/unit/ha/backoff.test.js`: delays 1 s, 2 s, 4 s, … capped at 30 s; `reset()` after success; `stop()` puts it into a no-retry state that only `reset()` leaves (FR-004, FR-005)
+- [X] T016 [P] Write `tests/unit/ha/messages.test.js`: http→ws / https→wss URL building including base paths and trailing slashes; invalid URL detection; builders for `auth`, `get_states`, `subscribe_events`, `call_service`, `ping`; parsing of `result`/`event`/`pong`
+- [X] T017 [P] Write `tests/integration/ha/client.test.js` against the fake HA server, with `mock.timers` where time matters:
   - connect → `connected` and states loaded
   - `auth_invalid` → `auth_failed` with no further connection attempts
   - changing credentials after `auth_failed` → reconnect
@@ -77,12 +77,12 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
   - missing `pong` within 10 s → reconnect
   - server restart → reconnect, states reloaded, resubscribed
   - with a recording logger at `info` level, the whole run logs no entity IDs, no state values and no token; at `debug` level entity IDs may appear (Principle V)
-- [ ] T018 [P] Write `tests/unit/domain/entity-store.test.js`: full load, `changed(entityId)` notifications per subscriber, removal (`new_state: null` → not found), unavailable detection (`unavailable`/`unknown`/missing), friendly-name fallback to the object id
-- [ ] T019 [P] Write `tests/unit/domain/attributes.test.js` for every entry in the mapping table of [contracts/ha-websocket.md](contracts/ha-websocket.md), using the fixtures from T014: `isSupported`, `read` (brightness 102 → 40 %, off → `null`), `bounds`, `defaultSteps`, `unit`, clamping and step rounding, `toServiceCall` (including `volume_level` scaling and `offAtMin` turn-off calls), and `supportedAttributes(entity)` (FR-021, FR-022, FR-025)
-- [ ] T020 [P] Write `tests/unit/domain/i18n.test.js`: lookup by key from a locale `Localization` object, fallback to `en`, then to the key itself; `{placeholder}` interpolation; language selection from codes like `de`, `de_DE`, `en`
-- [ ] T021 [P] Write `tests/unit/adapter/logger.test.js`: the configured token, `access_token` values and `Authorization: Bearer …` never appear in output (they are replaced with `***`); `debug` messages are suppressed unless debug is enabled; log levels map to `$UD.logMessage` levels (Principle V)
-- [ ] T022 [P] Write `tests/unit/domain/render/key-svg.test.js`: the SVG output of a `KeyRender` model (data-model §10) has viewBox `0 0 144 144`, XML-escapes user labels, truncates long labels with an ellipsis, uses one colour set per style (`on`, `off`, `unavailable`, `edit`, `trigger`, `sensor`, `warn`), uses generic `sans-serif` only and references no external resources; base64 output is valid
-- [ ] T023 [P] Write `tests/integration/adapter/app.test.js` with the fake `$UD`:
+- [X] T018 [P] Write `tests/unit/domain/entity-store.test.js`: full load, `changed(entityId)` notifications per subscriber, removal (`new_state: null` → not found), unavailable detection (`unavailable`/`unknown`/missing), friendly-name fallback to the object id
+- [X] T019 [P] Write `tests/unit/domain/attributes.test.js` for every entry in the mapping table of [contracts/ha-websocket.md](contracts/ha-websocket.md), using the fixtures from T014: `isSupported`, `read` (brightness 102 → 40 %, off → `null`), `bounds`, `defaultSteps`, `unit`, clamping and step rounding, `toServiceCall` (including `volume_level` scaling and `offAtMin` turn-off calls), and `supportedAttributes(entity)` (FR-021, FR-022, FR-025)
+- [X] T020 [P] Write `tests/unit/domain/i18n.test.js`: lookup by key from a locale `Localization` object, fallback to `en`, then to the key itself; `{placeholder}` interpolation; language selection from codes like `de`, `de_DE`, `en`
+- [X] T021 [P] Write `tests/unit/adapter/logger.test.js`: the configured token, `access_token` values and `Authorization: Bearer …` never appear in output (they are replaced with `***`); `debug` messages are suppressed unless debug is enabled; log levels map to `$UD.logMessage` levels (Principle V); `installConsoleRedaction()` makes `console.log/info/warn/error` output redacted the same way, because the SDK logs every protocol message including global settings (research R-18)
+- [X] T022 [P] Write `tests/unit/domain/render/key-svg.test.js`: the SVG output of a `KeyRender` model (data-model §10) has viewBox `0 0 144 144`, XML-escapes user labels, truncates long labels with an ellipsis, uses one colour set per style (`on`, `off`, `unavailable`, `edit`, `trigger`, `sensor`, `warn`), uses generic `sans-serif` only and references no external resources; base64 output is valid
+- [X] T023 [P] Write `tests/integration/adapter/app.test.js` with the fake `$UD`:
   - `onConnected` requests global settings
   - global settings configure and connect the client
   - `onAdd`/`onClear` create and dispose action instances through the action registry
@@ -91,23 +91,23 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Implementation
 
-- [ ] T024 [P] Implement `src/ha/backoff.js` so that T015 passes
-- [ ] T025 [P] Implement `src/ha/messages.js` so that T016 passes
-- [ ] T026 Implement `src/ha/client.js` (an `EventTarget`; constructor takes `{ createSocket, clock, logger }`) with the status state machine from [data-model.md](data-model.md) §1. It exposes `configure(url, token)`, `callService(call)`, `getStates()`, `status` and the events `status`, `state_changed`, `states_loaded`. Done when T017 passes. Depends on T024 and T025.
-- [ ] T027 [P] Implement `src/domain/entity-store.js` so that T018 passes
-- [ ] T028 [P] Implement the attribute registry `src/domain/attributes/index.js` and `src/domain/attributes/light.js`, `media-player.js`, `climate.js`, `cover.js`, `fan.js`, `number.js` as specified in data-model §3 and [contracts/ha-websocket.md](contracts/ha-websocket.md), so that T019 passes
-- [ ] T029 [P] Implement `src/domain/i18n.js` (it receives the parsed locale objects; no file I/O) so that T020 passes
-- [ ] T030 [P] Implement `src/adapter/logger.js` so that T021 passes
-- [ ] T031 [P] Implement `src/domain/render/theme.js` (colour sets per style) and `src/domain/render/key-svg.js` (`renderKeySvg(model) → base64`) so that T022 passes
-- [ ] T032 Implement the adapter skeleton `src/adapter/app.js` so that T023 passes.
+- [X] T024 [P] Implement `src/ha/backoff.js` so that T015 passes
+- [X] T025 [P] Implement `src/ha/messages.js` so that T016 passes
+- [X] T026 Implement `src/ha/client.js` (an `EventTarget`; constructor takes `{ createSocket, clock, logger }`) with the status state machine from [data-model.md](data-model.md) §1. It exposes `configure(url, token)`, `callService(call)`, `getStates()`, `status` and the events `status`, `state_changed`, `states_loaded`. Done when T017 passes. Depends on T024 and T025.
+- [X] T027 [P] Implement `src/domain/entity-store.js` so that T018 passes
+- [X] T028 [P] Implement the attribute registry `src/domain/attributes/index.js` and `src/domain/attributes/light.js`, `media-player.js`, `climate.js`, `cover.js`, `fan.js`, `number.js` as specified in data-model §3 and [contracts/ha-websocket.md](contracts/ha-websocket.md), so that T019 passes
+- [X] T029 [P] Implement `src/domain/i18n.js` (it receives the parsed locale objects; no file I/O) so that T020 passes
+- [X] T030 [P] Implement `src/adapter/logger.js` so that T021 passes
+- [X] T031 [P] Implement `src/domain/render/theme.js` (colour sets per style) and `src/domain/render/key-svg.js` (`renderKeySvg(model) → base64`) so that T022 passes
+- [X] T032 Implement the adapter skeleton `src/adapter/app.js` so that T023 passes.
   - Startup: `$UD.connect('com.ulanzi.ulanzistudio.hadeck')`; read the language from `process.argv[4]` and load the matching `en.json`/`de_DE.json` from the plugin root for i18n.
   - Wire the HA client (with a `ws`-based `createSocket`), entity store and logger.
   - Global settings → `client.configure`.
   - Provide an action registry keyed by action UUID suffix and context, where every handler call is wrapped in try/catch + log.
   - Add `src/adapter/actions/action-base.js`, a shared base class: binding settings, subscribe to its entity in the store, `render()` hook, dispose.
   - Depends on T026, T027, T029, T030.
-- [ ] T033 Create `src/adapter/pi-bridge.js` with the message envelope from [contracts/pi-messages.md](contracts/pi-messages.md) (`v`, `type`, `id`, reply with the same id, `error.key`, ignore unknown types) and register it in `src/adapter/app.js` via `onSendToPlugin`. No message types yet; they are added per story.
-- [ ] T034 Create `plugin/com.ulanzi.hadeck.ulanziPlugin/property-inspector/shared.js` and `shared.css`:
+- [X] T033 Create `src/adapter/pi-bridge.js` with the message envelope from [contracts/pi-messages.md](contracts/pi-messages.md) (`v`, `type`, `id`, reply with the same id, `error.key`, ignore unknown types) and register it in `src/adapter/app.js` via `onSendToPlugin`. No message types yet; they are added per story.
+- [X] T034 Create `plugin/com.ulanzi.hadeck.ulanziPlugin/property-inspector/shared.js` and `shared.css`:
   - a request/reply helper over `$UD.sendToPlugin` / `onSendToPropertyInspector` with ids and a 10 s timeout
   - form helpers that populate from `onAdd`/`onParamFromApp` and save via debounced (300 ms) `setSettings`
   - `.uspi-wrapper` layout
@@ -129,30 +129,30 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 1 ⚠️ write first, must fail
 
-- [ ] T036 [P] [US1] Write `tests/integration/adapter/pi-bridge-connection.test.js`:
+- [X] T036 [P] [US1] Write `tests/integration/adapter/pi-bridge-connection.test.js`:
   - `connection.test` returns `ok` + `entityCount` + `haVersion` for valid credentials
   - it returns `error.auth`, `error.unreachable`, `error.timeout` and `error.invalidUrl` in the matching cases, using a temporary connection that does not disturb the main one
   - `haToken: null` means "use the stored token"
   - `connection.status` reflects the client status and `hasToken`
   - `connection.changed` is pushed to open PIs on status change
   - **no reply ever contains the token** (FR-003, Principle V)
-- [ ] T037 [P] [US1] Write `tests/integration/adapter/connection-flow.test.js`:
+- [X] T037 [P] [US1] Write `tests/integration/adapter/connection-flow.test.js`:
   - an `auth_failed` status shows one `toast` (`error.auth`) and every bound key renders the unavailable/disconnected style
   - new global settings trigger a reconnect
   - after a fake server restart every action re-renders with current states within the backoff window (FR-004, FR-005, SC-006)
 
 ### Implementation for User Story 1
 
-- [ ] T038 [US1] Implement the message types `connection.test`, `connection.status` and the `connection.changed` push in `src/adapter/pi-bridge.js` (temporary client instance for the test, using `src/ha/client.js`) so that T036 passes
-- [ ] T039 [US1] Implement the connection-status handling in `src/adapter/app.js` and `src/adapter/actions/action-base.js`: broadcast status changes to all actions, render the disconnected/auth-failed state and toast `error.auth` once per failure, so that T037 passes
-- [ ] T040 [US1] Add the connection block to `plugin/…/property-inspector/shared.js` and `shared.css` (FR-002, FR-003, research R-08):
+- [X] T038 [US1] Implement the message types `connection.test`, `connection.save`, `connection.status` and the `connection.changed` push in `src/adapter/pi-bridge.js` (temporary client instance for the test, using `src/ha/client.js`) so that T036 passes
+- [X] T039 [US1] Implement the connection-status handling in `src/adapter/app.js` and `src/adapter/actions/action-base.js`: broadcast status changes to all actions, render the disconnected/auth-failed state and toast `error.auth` once per failure, so that T037 passes
+- [X] T040 [US1] Add the connection block to `plugin/…/property-inspector/shared.js` and `shared.css` (FR-002, FR-003, research R-08):
   - fields: URL and token (masked placeholder once a token is stored; a new token is sent only if edited)
   - *Test connection* button showing the result message
   - status line driven by `connection.status`/`connection.changed`
-  - on test success: `$UD.setGlobalSettings({ haUrl, haToken })`
-  - on `error.unreachable` or `error.timeout` (HA may just be offline): show a *Save anyway* button that saves via `setGlobalSettings`; the main service then connects in the background and the status line shows the result. Not offered for `error.auth` or `error.invalidUrl`.
-- [ ] T041 [US1] Create `plugin/…/property-inspector/toggle.html` containing the shared connection block (the entity fields follow in US2), loading `libs/common-html` and `shared.js`
-- [ ] T042 [P] [US1] Add the connection-related keys (`pi.connection.*`, `status.connected`, `status.disconnected`, `error.auth`, `error.unreachable`, `error.timeout`, `error.invalidUrl`) to `Localization` in `plugin/…/en.json` and `plugin/…/de_DE.json`
+  - on test success: send `connection.save` (the main service stores the credentials with `setGlobalSettings`)
+  - on `error.unreachable` or `error.timeout` (HA may just be offline): show a *Save anyway* button that sends `connection.save`; the main service then connects in the background and the status line shows the result. Not offered for `error.auth` or `error.invalidUrl`.
+- [X] T041 [US1] Create `plugin/…/property-inspector/toggle.html` containing the shared connection block (the entity fields follow in US2), loading `libs/common-html` and `shared.js`
+- [X] T042 [P] [US1] Add the connection-related keys (`pi.connection.*`, `status.connected`, `status.disconnected`, `error.auth`, `error.unreachable`, `error.timeout`, `error.invalidUrl`) to `Localization` in `plugin/…/en.json` and `plugin/…/de_DE.json`
 
 **Checkpoint**: The connection can be configured, tested and survives HA restarts. This is the MVP increment.
 
@@ -166,35 +166,35 @@ description: "Task list for the Home Assistant plugin for Ulanzi Deck with dial 
 
 ### Tests for User Story 2 ⚠️ write first, must fail
 
-- [ ] T043 [P] [US2] Write `tests/unit/domain/long-press.test.js` with `mock.timers`:
+- [X] T043 [P] [US2] Write `tests/unit/domain/long-press.test.js` with `mock.timers`:
   - keyup before the threshold → short press
   - holding past the threshold fires the long-press callback **while still held**, and the subsequent keyup emits nothing
   - the threshold is configurable (300–2000 ms)
   - repeated keydown without keyup is ignored
   - 20 short + 20 long presses are classified correctly (SC-005)
-- [ ] T044 [P] [US2] Write `tests/unit/domain/press-actions.test.js` for the press-action table in [contracts/ha-websocket.md](contracts/ha-websocket.md): toggle domains, `media_player.media_play_pause`, climate on/off by state, scene/script `turn_on`, `automation.trigger`
-- [ ] T045 [P] [US2] Write `tests/unit/domain/render/key-model.test.js`:
+- [X] T044 [P] [US2] Write `tests/unit/domain/press-actions.test.js` for the press-action table in [contracts/ha-websocket.md](contracts/ha-websocket.md): toggle domains, `media_player.media_play_pause`, climate on/off by state, scene/script `turn_on`, `automation.trigger`
+- [X] T045 [P] [US2] Write `tests/unit/domain/render/key-model.test.js`:
   - the toggle render model shows on/off/unavailable/not-found styles
   - the label defaults to the friendly name
   - custom `onText`/`offText` are used, otherwise the localised `status.on`/`status.off`
   - a dimmable light that is on shows its brightness % (FR-011, FR-012)
-- [ ] T046 [P] [US2] Write `tests/integration/adapter/toggle.test.js` with the fake `$UD` and fake HA server:
+- [X] T046 [P] [US2] Write `tests/integration/adapter/toggle.test.js` with the fake `$UD` and fake HA server:
   - `onAdd` renders the current state
   - keydown+keyup sends `<domain>.toggle`; `onRun` is ignored (no double toggle)
   - `state_changed` re-renders within the same tick
   - a failed call triggers `showAlert` and a `logMessage` at `warn` level (FR-040, Principle IV)
   - two keys on the same entity both update
-- [ ] T047 [P] [US2] Write `tests/integration/adapter/pi-bridge-entities.test.js`: `entities.list` filters by domain list and case-insensitive query on entity ID and friendly name, respects `limit`, and returns an empty list when disconnected (FR-013)
+- [X] T047 [P] [US2] Write `tests/integration/adapter/pi-bridge-entities.test.js`: `entities.list` filters by domain list and case-insensitive query on entity ID and friendly name, respects `limit`, and returns an empty list when disconnected (FR-013)
 
 ### Implementation for User Story 2
 
-- [ ] T048 [P] [US2] Implement `src/domain/long-press.js` (the `PressDetector` from data-model §7, with injected clock/timers) so that T043 passes
-- [ ] T049 [P] [US2] Implement `src/domain/press-actions.js` (`pressActionFor(entity) → ServiceCall`) so that T044 passes
-- [ ] T050 [P] [US2] Implement `src/domain/render/key-model.js` (`toggleModel(entity, binding, t)`) so that T045 passes
-- [ ] T051 [US2] Implement `src/adapter/actions/toggle.js` (`PressDetector` on `onKeyDown`/`onKeyUp`, `onRun` ignored, short press → `pressActionFor`, render via `key-model` + `key-svg` + `setBaseDataIcon`, `showAlert` on error) and register it in `src/adapter/app.js`, so that T046 passes. Depends on T048–T050.
-- [ ] T052 [US2] Implement `entities.list` in `src/adapter/pi-bridge.js` so that T047 passes
-- [ ] T053 [US2] Add the entity picker component (search input with a debounced `entities.list` request and a result list) to `plugin/…/property-inspector/shared.js`/`shared.css`, and add the fields entity, label, on text and off text to `plugin/…/property-inspector/toggle.html`
-- [ ] T054 [P] [US2] Add the toggle keys (`status.on`, `status.off`, `status.unavailable`, `status.notFound`, `pi.entity.*`, `pi.label`, `pi.onText`, `pi.offText`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
+- [X] T048 [P] [US2] Implement `src/domain/long-press.js` (the `PressDetector` from data-model §7, with injected clock/timers) so that T043 passes
+- [X] T049 [P] [US2] Implement `src/domain/press-actions.js` (`pressActionFor(entity) → ServiceCall`) so that T044 passes
+- [X] T050 [P] [US2] Implement `src/domain/render/key-model.js` (`toggleModel(entity, binding, t)`) so that T045 passes
+- [X] T051 [US2] Implement `src/adapter/actions/toggle.js` (`PressDetector` on `onKeyDown`/`onKeyUp`, `onRun` ignored, short press → `pressActionFor`, render via `key-model` + `key-svg` + `setBaseDataIcon`, `showAlert` on error) and register it in `src/adapter/app.js`, so that T046 passes. Depends on T048–T050.
+- [X] T052 [US2] Implement `entities.list` in `src/adapter/pi-bridge.js` so that T047 passes
+- [X] T053 [US2] Add the entity picker component (search input with a debounced `entities.list` request and a result list) to `plugin/…/property-inspector/shared.js`/`shared.css`, and add the fields entity, label, on text and off text to `plugin/…/property-inspector/toggle.html`
+- [X] T054 [P] [US2] Add the toggle keys (`status.on`, `status.off`, `status.unavailable`, `status.notFound`, `pi.entity.*`, `pi.label`, `pi.onText`, `pi.offText`) to `plugin/…/en.json` and `plugin/…/de_DE.json`
 
 **Checkpoint**: US1 + US2 make a usable key-only HA plugin.
 

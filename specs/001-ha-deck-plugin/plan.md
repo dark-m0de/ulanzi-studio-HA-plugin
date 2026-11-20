@@ -109,7 +109,7 @@ package.json                 # "type": "module"; scripts: test, build, package, 
 .editorconfig
 .github/workflows/test.yml   # CI: npm test + build on macOS, Windows, Linux
 scripts/
-├── build.mjs                # esbuild: src/adapter/app.js → plugin/…/dist/app.js
+├── build.mjs                # esbuild: src/adapter/main.js → plugin/…/dist/app.js
 ├── package.mjs              # zip plugin folder → com.ulanzi.hadeck.ulanziPlugin.zip
 └── dev-link.mjs             # symlink plugin folder into Ulanzi Studio plugins dir
 
@@ -134,7 +134,9 @@ src/
 │   │   ├── key-svg.js  dial-feedback.js  theme.js
 │   └── i18n.js              # message keys → strings from locale files
 └── adapter/                 # Layer 3 – SDK binding
-    ├── app.js               # entry: $UD.connect, wiring, global settings
+    ├── main.js              # bundle entry: real $UD, ws socket factory, locale files
+    ├── app.js               # createApp(): $UD.connect, wiring, global settings (testable)
+    ├── pi-handlers.js       # PI request handlers (connection.*, entities.list, …)
     ├── logger.js            # $UD.logMessage wrapper with token redaction
     ├── pi-bridge.js         # handles pi-messages contract
     └── actions/

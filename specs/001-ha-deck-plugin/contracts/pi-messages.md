@@ -18,13 +18,16 @@ containing either `payload` or `error: { "key": "<message key>" }`.
 | `type` | `payload` | Reply `payload` |
 |---|---|---|
 | `connection.test` | `{ "haUrl": string, "haToken": string \| null }`. `null` means "use the stored token" | `{ "ok": true, "entityCount": number, "haVersion": string }` or `error.key ∈ error.unreachable \| error.auth \| error.timeout \| error.invalidUrl` |
+| `connection.save` | `{ "haUrl": string, "haToken": string \| null }`. `null` keeps the stored token | `{ "saved": true }` or `error.key ∈ error.invalidUrl \| error.auth` (no token stored and none given). The main service stores the credentials with `setGlobalSettings` and reconnects. |
 | `connection.status` | `{}` | `{ "status": "unconfigured\|connecting\|connected\|reconnecting\|auth_failed", "hasToken": bool, "haUrl": string }` |
 | `entities.list` | `{ "domains": string[] \| null, "query": string \| null, "limit": number }` | `{ "entities": [{ "entityId", "friendlyName", "domain", "state" }] }`. Matches on entity ID and friendly name, case-insensitive (FR-013) |
 | `entity.capabilities` | `{ "entityId": string }` | `{ "attributes": [{ "id", "unit", "min", "max", "defaultFine", "defaultCoarse" }], "longPressEligible": bool }` (FR-022) |
 
-The test validates the URL and token on a temporary connection. After success the PI calls
-`setGlobalSettings`. After `error.unreachable` or `error.timeout` the PI offers *Save anyway*
-(HA may just be offline); after `error.auth` or `error.invalidUrl` it does not save. The token
+The test validates the URL and token on a temporary connection. After success the PI sends
+`connection.save`. After `error.unreachable` or `error.timeout` the PI offers *Save anyway*
+(HA may just be offline), which also sends `connection.save`; after `error.auth` or
+`error.invalidUrl` it does not save. The PI never calls `setGlobalSettings` itself: the main
+service saves, so it does not depend on Studio forwarding global settings. The token
 is **never** included in any reply.
 
 ## Pushes (main service → PI, unsolicited)
@@ -39,7 +42,8 @@ is **never** included in any reply.
 - The connection block (URL, token, test button, status) is shared by all PIs
   (`shared.js`). After saving, the token field shows a masked placeholder. A new value is
   sent only if the user edits the field.
-- The form populates from `onAdd`/`onParamFromApp` and saves via `setSettings` on change
-  (debounced 300 ms).
+- The form populates from `onAdd`/`onParamFromApp` and saves via `sendParamFromPlugin` on change
+  (debounced 300 ms), as the common-html SDK recommends. The connection block is outside this
+  form, so the token is never stored in per-action settings.
 - The Dynamic Dial PI shows the hint "Use only one Dynamic Dial per device" (FR-032a).
 - All visible strings use `data-localize` keys from `en.json`/`de_DE.json`.

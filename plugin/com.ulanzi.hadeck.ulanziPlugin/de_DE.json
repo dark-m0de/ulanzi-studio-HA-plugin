@@ -1,0 +1,69 @@
+{
+  "Name": "HA Deck",
+  "Description": "Home Assistant mit Tasten und Drehknöpfen des Ulanzi Deck steuern.",
+  "Actions": [
+    {
+      "Name": "HA Schalter",
+      "Tooltip": "Eine Home-Assistant-Entität schalten und ihren Zustand live anzeigen"
+    },
+    {
+      "Name": "HA Drehknopf",
+      "Tooltip": "Einen Wert einer Home-Assistant-Entität mit einem Drehknopf steuern"
+    },
+    {
+      "Name": "HA Dynamischer Drehknopf",
+      "Tooltip": "Steuert die Entität einer lang gedrückten HA-Schalter-Taste"
+    },
+    {
+      "Name": "HA Auslöser",
+      "Tooltip": "Eine Szene oder ein Skript aktivieren oder eine Automation auslösen"
+    },
+    {
+      "Name": "HA Sensor",
+      "Tooltip": "Den Wert eines Home-Assistant-Sensors anzeigen"
+    },
+    {
+      "Name": "HA Dienstaufruf",
+      "Tooltip": "Einen beliebigen Home-Assistant-Dienst aufrufen"
+    }
+  ],
+  "Localization": {
+    "pi.connection.heading": "Home-Assistant-Verbindung",
+    "pi.connection.url": "URL",
+    "pi.connection.token": "Zugriffstoken",
+    "pi.connection.tokenPlaceholder": "Langlebiges Zugriffstoken",
+    "pi.connection.tokenStored": "Token gespeichert – neues eingeben, um es zu ersetzen",
+    "pi.connection.test": "Testen & speichern",
+    "pi.connection.saveAnyway": "Trotzdem speichern",
+    "pi.connection.testing": "Verbindung wird getestet…",
+    "pi.connection.ok": "Verbunden – {count} Entitäten. Gespeichert.",
+    "pi.connection.savedOffline": "Gespeichert. Das Plugin verbindet sich, sobald Home Assistant erreichbar ist.",
+    "pi.heading.key": "Taste",
+    "status.connection.unconfigured": "Nicht eingerichtet",
+    "status.connection.connecting": "Verbinde…",
+    "status.connection.connected": "Verbunden",
+    "status.connection.reconnecting": "Verbindung verloren – verbinde neu…",
+    "status.connection.auth_failed": "Anmeldung fehlgeschlagen – Token prüfen",
+    "status.connected": "Verbunden",
+    "status.disconnected": "Offline",
+    "error.auth": "Home Assistant: Anmeldung fehlgeschlagen",
+    "error.unreachable": "Home Assistant ist nicht erreichbar",
+    "error.timeout": "Home Assistant hat nicht rechtzeitig geantwortet",
+    "error.invalidUrl": "Ungültige URL – Format http(s)://host:port",
+    "error.internal": "Interner Fehler – siehe Plugin-Log",
+    "status.on": "An",
+    "status.off": "Aus",
+    "status.unavailable": "n. v.",
+    "status.notFound": "Fehlt",
+    "status.setup": "Einrichten",
+    "pi.entity": "Entität",
+    "pi.entity.placeholder": "Nach Name oder Entitäts-ID suchen",
+    "pi.entity.none": "Keine passenden Entitäten",
+    "pi.label": "Beschriftung",
+    "pi.label.placeholder": "Standard: Name der Entität",
+    "pi.onText": "Text für An",
+    "pi.onText.placeholder": "Standard: An",
+    "pi.offText": "Text für Aus",
+    "pi.offText.placeholder": "Standard: Aus"
+  }
+}

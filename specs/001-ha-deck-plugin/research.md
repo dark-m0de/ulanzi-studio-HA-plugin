@@ -227,6 +227,23 @@ has a default decision, so planning is not blocked.
   - Entity IDs and states are logged only at `debug`.
 - **Rationale**: Principle V. Unit-tested (log output must never contain the token).
 
+
+## R-18 SDK console output and token leakage (found while reading `common-node` @ 9e478b2)
+
+- **Finding**: `ulanzideck-api` writes every inbound and outbound protocol message to the
+  console (`Utils.log` in `onmessage`, `console.warn` in `send`, `console.warn` in
+  `setSettings`). This includes `didReceiveGlobalSettings` / `setGlobalSettings` payloads, i.e.
+  the **HA token**, whenever Ulanzi Studio captures the plugin's stdout/stderr.
+  `connect()` also consumes `process.argv` via `splice(2)`, so address, port and language must be
+  read from `$UD.address` / `$UD.port` / `$UD.language` after `connect()`, not from `argv`.
+- **Decision**: Before calling `$UD.connect()`, the adapter installs a console filter
+  (`src/adapter/logger.js`, `installConsoleRedaction`) that runs every `console.log/info/warn/error`
+  argument through the same redactor as `logMessage` (current token, `access_token`,
+  `haToken`, `Authorization: Bearer …` → `***`). This wraps our own process's console and does
+  not modify SDK code, so Principle I is respected; Principle V is enforced. Covered by T021.
+- **Alternatives considered**: forking/patching the SDK (violates Principle I and complicates
+  updates); not storing the token in global settings (would break FR-002).
+
 ---
 
 ## Open validations (device / Studio behaviour not covered by documentation)

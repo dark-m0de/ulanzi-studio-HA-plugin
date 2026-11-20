@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HA Toggle</title>
+  <link rel="stylesheet" href="../libs/common-html/css/uspi.css">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+  <div class="uspi-wrapper">
+    <div id="hadeck-connection"></div>
+
+    <form id="property-inspector" autocomplete="off">
+      <div class="uspi-heading" data-localize>pi.heading.key</div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.entity</div>
+        <input class="uspi-item-value" type="text" name="entityId" id="entityId" spellcheck="false"
+               data-localize="pi.entity.placeholder" placeholder="pi.entity.placeholder">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.label</div>
+        <input class="uspi-item-value" type="text" name="label" maxlength="24"
+               data-localize="pi.label.placeholder" placeholder="pi.label.placeholder">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.onText</div>
+        <input class="uspi-item-value" type="text" name="onText" maxlength="8"
+               data-localize="pi.onText.placeholder" placeholder="pi.onText.placeholder">
+      </div>
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.offText</div>
+        <input class="uspi-item-value" type="text" name="offText" maxlength="8"
+               data-localize="pi.offText.placeholder" placeholder="pi.offText.placeholder">
+      </div>
+    </form>
+  </div>
+
+  <script src="../libs/common-html/js/constants.js"></script>
+  <script src="../libs/common-html/js/eventEmitter.js"></script>
+  <script src="../libs/common-html/js/timers.js"></script>
+  <script src="../libs/common-html/js/utils.js"></script>
+  <script src="../libs/common-html/js/ulanziApi.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    HADeck.mountConnectionBlock('#hadeck-connection');
+    HADeck.bindForm('#property-inspector');
+    // Domains the HA Toggle supports (FR-010).
+    HADeck.mountEntityPicker(document.getElementById('entityId'), {
+      domains: ['light', 'switch', 'fan', 'cover', 'media_player', 'climate', 'input_boolean'],
+    });
+    $UD.connect(HADeck.ACTION_PREFIX + 'toggle');
+  </script>
+</body>
+</html>

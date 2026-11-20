@@ -1,0 +1,69 @@
+{
+  "Name": "HA Deck",
+  "Description": "Control Home Assistant from Ulanzi Deck keys and dials.",
+  "Actions": [
+    {
+      "Name": "HA Toggle",
+      "Tooltip": "Toggle a Home Assistant entity and show its live state"
+    },
+    {
+      "Name": "HA Dial",
+      "Tooltip": "Control a value of a Home Assistant entity with a dial"
+    },
+    {
+      "Name": "HA Dynamic Dial",
+      "Tooltip": "Controls the entity of a long-pressed HA Toggle key"
+    },
+    {
+      "Name": "HA Trigger",
+      "Tooltip": "Activate a scene or script, or trigger an automation"
+    },
+    {
+      "Name": "HA Sensor",
+      "Tooltip": "Show the value of a Home Assistant sensor"
+    },
+    {
+      "Name": "HA Service Call",
+      "Tooltip": "Call any Home Assistant service"
+    }
+  ],
+  "Localization": {
+    "pi.connection.heading": "Home Assistant connection",
+    "pi.connection.url": "URL",
+    "pi.connection.token": "Access token",
+    "pi.connection.tokenPlaceholder": "Long-lived access token",
+    "pi.connection.tokenStored": "Token saved – enter a new one to replace it",
+    "pi.connection.test": "Test & save",
+    "pi.connection.saveAnyway": "Save anyway",
+    "pi.connection.testing": "Testing connection…",
+    "pi.connection.ok": "Connected – {count} entities. Saved.",
+    "pi.connection.savedOffline": "Saved. The plugin connects as soon as Home Assistant is reachable.",
+    "pi.heading.key": "Key",
+    "status.connection.unconfigured": "Not configured",
+    "status.connection.connecting": "Connecting…",
+    "status.connection.connected": "Connected",
+    "status.connection.reconnecting": "Connection lost – reconnecting…",
+    "status.connection.auth_failed": "Authentication failed – check the token",
+    "status.connected": "Connected",
+    "status.disconnected": "Offline",
+    "error.auth": "Home Assistant: authentication failed",
+    "error.unreachable": "Home Assistant is not reachable",
+    "error.timeout": "Home Assistant did not answer in time",
+    "error.invalidUrl": "Invalid URL – use http(s)://host:port",
+    "error.internal": "Internal error – see the plugin log",
+    "status.on": "On",
+    "status.off": "Off",
+    "status.unavailable": "N/A",
+    "status.notFound": "Missing",
+    "status.setup": "Setup",
+    "pi.entity": "Entity",
+    "pi.entity.placeholder": "Search by name or entity ID",
+    "pi.entity.none": "No matching entities",
+    "pi.label": "Label",
+    "pi.label.placeholder": "Default: entity name",
+    "pi.onText": "On text",
+    "pi.onText.placeholder": "Default: On",
+    "pi.offText": "Off text",
+    "pi.offText.placeholder": "Default: Off"
+  }
+}
