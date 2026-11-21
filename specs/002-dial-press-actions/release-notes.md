@@ -24,6 +24,14 @@
   edited entity. The old behaviour is available as "Toggle edited entity" in the Dynamic Dial
   settings. HA Dials keep their previous press behaviour unless you change it.
 
+## Fixed
+
+- A long press on an HA Toggle key no longer ends edit mode right away while Ulanzi Studio is open
+  (Studio re-sends the key settings when the key is selected).
+- The dial display no longer briefly replaces the D200X idle clock after editing: dials send nothing
+  while inactive, and after an edit-mode timeout the Dynamic Dial shows its idle hint with the next
+  input on the deck.
+
 ## Notes
 
 - Pressing a dial while rotating it still triggers no press action.
