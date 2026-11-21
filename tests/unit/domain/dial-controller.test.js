@@ -118,3 +118,39 @@ test('missing entities or unsupported attributes yield null and send nothing', (
   assert.equal(missing.controller.rotate('right'), null);
   assert.equal(calls.length + missing.calls.length, 0);
 });
+
+// --- setValue (feature 002, T004) ------------------------------------------------------------
+
+test('setValue clamps and rounds like rotation', () => {
+  const ct = setup('light.desk', 'light.color_temp');
+  assert.equal(ct.controller.setValue(9000), 6500);
+  assert.equal(ct.calls[0].data.color_temp_kelvin, 6500);
+  const num = setup('input_number.volume_target', 'number.value');
+  assert.equal(num.controller.setValue(4.2), 4);
+  assert.deepEqual(num.calls[0].data, { value: 4 });
+});
+
+test('setValue turns a light that is off on and sets the optimistic value immediately', () => {
+  const { calls, controller } = setup('light.living_room', 'light.brightness', {}, (s) => (s.state = 'off'));
+  assert.equal(controller.setValue(100), 100);
+  assert.equal(calls[0].service, 'turn_on');
+  assert.equal(calls[0].data.brightness_pct, 100);
+  assert.equal(controller.displayValue(), 100);
+});
+
+test('setValue shares the per-entity throttle with rotation', () => {
+  const { clock, calls, controller } = setup('light.living_room', 'light.brightness');
+  controller.rotate('right');
+  controller.setValue(100);
+  assert.equal(calls.length, 1);
+  clock.tick(200);
+  assert.deepEqual(calls.map((c) => c.data.brightness_pct), [45, 100]);
+});
+
+test('setValue returns null and sends nothing for unsupported attributes or missing entities', () => {
+  const unsupported = setup('light.hallway', 'light.brightness');
+  assert.equal(unsupported.controller.setValue(50), null);
+  const missing = setup('light.nope', 'light.brightness');
+  assert.equal(missing.controller.setValue(50), null);
+  assert.equal(unsupported.calls.length + missing.calls.length, 0);
+});

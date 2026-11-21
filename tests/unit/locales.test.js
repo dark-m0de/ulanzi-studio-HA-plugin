@@ -23,6 +23,10 @@ const KEY = /(?:pi|status|error|hint)\.[A-Za-z0-9_.]+[A-Za-z0-9_]/;
 const DYNAMIC = {
   'status.connection.': ['unconfigured', 'connecting', 'connected', 'reconnecting', 'auth_failed'],
   'pi.attribute.': ['light.brightness', 'light.color_temp', 'media_player.volume', 'climate.temperature', 'cover.position', 'fan.percentage', 'number.value'],
+  // Short value names on dial and edit key (feature 002, FR-021).
+  'attr.short.': ['light.brightness', 'light.color_temp', 'media_player.volume', 'climate.temperature', 'cover.position', 'fan.percentage', 'number.value'],
+  // Press action labels (feature 002); built from the registry ids in dial.html.
+  'pi.press.': ['default', 'switch_value', 'favorite', 'mute', 'next_track', 'hvac_cycle', 'preset_cycle', 'cover_stop_toggle', 'oscillate', 'service', 'none', 'end_edit', 'toggle'],
 };
 
 test('en.json and de_DE.json have the same Localization keys', () => {

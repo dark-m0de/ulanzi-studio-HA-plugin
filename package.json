@@ -1,6 +1,6 @@
 {
   "name": "ulanzi-hadeck",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "Home Assistant plugin for Ulanzi Deck with dial support",
   "type": "module",

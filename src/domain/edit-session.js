@@ -1,5 +1,6 @@
 // Single edit session broker for long-press editing (data-model.md §6, FR-030–FR-039).
 import { editAttributeFor } from './attributes/index.js';
+import { nextAttribute } from './dial-press.js';
 
 const DEFAULT_TIMEOUT_S = 10;
 const MIN_TIMEOUT_S = 3;
@@ -72,6 +73,20 @@ export class EditSessionBroker {
     this.#armTimer();
     this.#emit({ session: this.#session, reason: result });
     return result;
+  }
+
+  /**
+   * Switches the edited value to the entity's next controllable value (feature 002, FR-022).
+   * @returns {boolean} false when idle or the entity has no other value
+   */
+  switchAttribute(entity) {
+    if (!this.#session || entity?.entityId !== this.#session.entityId) return false;
+    const next = nextAttribute(entity, this.#session.attributeId);
+    if (!next) return false;
+    this.#session = { ...this.#session, attributeId: next };
+    this.#armTimer();
+    this.#emit({ session: this.#session, reason: 'switched_value' });
+    return true;
   }
 
   /** Any user input during edit mode extends the session. */

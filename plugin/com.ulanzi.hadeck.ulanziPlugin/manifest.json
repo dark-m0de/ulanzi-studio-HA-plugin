@@ -3,7 +3,7 @@
   "Name": "HA Deck",
   "Description": "Control Home Assistant from Ulanzi Deck keys and dials.",
   "Icon": "resources/plugin.svg",
-  "Version": "0.1.1",
+  "Version": "0.2.0",
   "Category": "Home Assistant",
   "CategoryIcon": "resources/category.svg",
   "CodePath": "dist/app.js",

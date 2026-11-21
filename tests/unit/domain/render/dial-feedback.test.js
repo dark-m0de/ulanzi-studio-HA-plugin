@@ -73,3 +73,14 @@ test('hint renders (idle Dynamic Dial) carry only text', () => {
   assert.equal(feedbackPayload(r).title.text, 'Hint');
   assert.match(dialSvg(r), /viewBox="0 0 100 100"/);
 });
+
+// --- feature 002: caption (T026) -----------------------------------------------------------
+
+test('an optional caption is carried in DialRender and drawn above the value', () => {
+  const r = dialRender({ entity: e('light.living_room'), attribute: brightness, value: 40, label: '', t, connected: true, caption: 'Bright.' });
+  assert.equal(r.caption, 'Bright.');
+  const svg = dialSvg(r);
+  assert.match(svg, /class="caption"[^>]*>Bright\.</);
+  const plain = dialSvg(dialRender({ entity: e('light.living_room'), attribute: brightness, value: 40, label: '', t, connected: true }));
+  assert.doesNotMatch(plain, /class="caption"/);
+});

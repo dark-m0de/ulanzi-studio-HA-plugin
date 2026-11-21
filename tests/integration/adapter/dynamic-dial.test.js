@@ -106,10 +106,10 @@ test('a fixed HA Dial on a different entity is unaffected by edit mode', async (
   assert.equal(h.server.messages('call_service')[0].domain, 'fan');
 });
 
-test('a Dynamic Dial press during edit runs the press action on the edited entity', async () => {
+test('a Dynamic Dial set to toggle runs the press action on the edited entity', async () => {
   h = await createHarness();
   addKey('light.living_room');
-  addDynamic('1_0');
+  addDynamic('1_0', { pressAction: 'toggle' }); // default is end_edit since feature 002
   holdKey();
   releaseKey();
   h.ud.emitAction('dialdown', 'dynamicdial', { key: '1_0' });

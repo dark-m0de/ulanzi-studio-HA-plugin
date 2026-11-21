@@ -141,3 +141,9 @@ test('serviceModel: label defaults to domain.service, invalid config shows the e
   assert.equal(serviceModel({ domain: 'light', service: 'turn_on' }, { ...opts, valid: true, confirming: true }).status, '[status.done]');
   assert.equal(serviceModel({ domain: 'light', service: 'turn_on' }, { t, connected: false, valid: true }).status, '[status.disconnected]');
 });
+
+test('edit style puts an optional caption (active value name) into the status line (feature 002)', () => {
+  const m = editModel(e('light.desk'), { entityId: 'light.desk' }, { t, value: 4000, unit: 'K', caption: 'Colour' });
+  assert.equal(m.status, 'Colour');
+  assert.equal(editModel(e('light.desk'), {}, { t, value: 50, unit: '%' }).status, '');
+});

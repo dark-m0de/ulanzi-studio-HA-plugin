@@ -4,7 +4,9 @@
     "state": "on",
     "attributes": {
       "friendly_name": "Living Room",
-      "supported_color_modes": ["brightness"],
+      "supported_color_modes": [
+        "brightness"
+      ],
       "color_mode": "brightness",
       "brightness": 102
     },
@@ -13,7 +15,12 @@
   {
     "entity_id": "light.hallway",
     "state": "off",
-    "attributes": { "friendly_name": "Hallway", "supported_color_modes": ["onoff"] },
+    "attributes": {
+      "friendly_name": "Hallway",
+      "supported_color_modes": [
+        "onoff"
+      ]
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
@@ -21,7 +28,9 @@
     "state": "on",
     "attributes": {
       "friendly_name": "Desk Lamp",
-      "supported_color_modes": ["color_temp"],
+      "supported_color_modes": [
+        "color_temp"
+      ],
       "color_mode": "color_temp",
       "brightness": 255,
       "color_temp_kelvin": 4000,
@@ -33,31 +42,56 @@
   {
     "entity_id": "switch.coffee",
     "state": "off",
-    "attributes": { "friendly_name": "Coffee Machine" },
+    "attributes": {
+      "friendly_name": "Coffee Machine"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "fan.bedroom",
     "state": "on",
-    "attributes": { "friendly_name": "Bedroom Fan", "supported_features": 1, "percentage": 40, "percentage_step": 10 },
+    "attributes": {
+      "friendly_name": "Bedroom Fan",
+      "supported_features": 11,
+      "percentage": 40,
+      "percentage_step": 10,
+      "oscillating": false,
+      "preset_modes": [
+        "auto",
+        "sleep"
+      ],
+      "preset_mode": "auto"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "cover.blinds",
     "state": "open",
-    "attributes": { "friendly_name": "Blinds", "supported_features": 15, "current_position": 70 },
+    "attributes": {
+      "friendly_name": "Blinds",
+      "supported_features": 15,
+      "current_position": 70
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "cover.garage",
     "state": "closed",
-    "attributes": { "friendly_name": "Garage Door", "supported_features": 3 },
+    "attributes": {
+      "friendly_name": "Garage Door",
+      "supported_features": 3
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "media_player.living_room",
     "state": "playing",
-    "attributes": { "friendly_name": "Living Room Speaker", "supported_features": 152461, "volume_level": 0.35 },
+    "attributes": {
+      "friendly_name": "Living Room Speaker",
+      "supported_features": 152493,
+      "volume_level": 0.35,
+      "is_volume_muted": false
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
@@ -65,48 +99,76 @@
     "state": "heat",
     "attributes": {
       "friendly_name": "Office",
-      "supported_features": 385,
+      "supported_features": 401,
       "temperature": 21,
       "min_temp": 7,
       "max_temp": 30,
-      "target_temp_step": 0.5
+      "target_temp_step": 0.5,
+      "hvac_modes": [
+        "off",
+        "heat",
+        "auto"
+      ],
+      "preset_modes": [
+        "comfort",
+        "eco",
+        "away"
+      ],
+      "preset_mode": "comfort"
     },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "input_number.volume_target",
     "state": "4.5",
-    "attributes": { "friendly_name": "Volume Target", "min": 0, "max": 10, "step": 0.5, "unit_of_measurement": "dB" },
+    "attributes": {
+      "friendly_name": "Volume Target",
+      "min": 0,
+      "max": 10,
+      "step": 0.5,
+      "unit_of_measurement": "dB"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "sensor.outdoor_temperature",
     "state": "12.3",
-    "attributes": { "friendly_name": "Outdoor Temperature", "unit_of_measurement": "°C" },
+    "attributes": {
+      "friendly_name": "Outdoor Temperature",
+      "unit_of_measurement": "°C"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "scene.evening",
     "state": "2026-11-19T20:00:00+00:00",
-    "attributes": { "friendly_name": "Evening" },
+    "attributes": {
+      "friendly_name": "Evening"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "script.good_night",
     "state": "off",
-    "attributes": { "friendly_name": "Good Night" },
+    "attributes": {
+      "friendly_name": "Good Night"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "automation.morning",
     "state": "on",
-    "attributes": { "friendly_name": "Morning Routine" },
+    "attributes": {
+      "friendly_name": "Morning Routine"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   },
   {
     "entity_id": "input_boolean.guest_mode",
     "state": "off",
-    "attributes": { "friendly_name": "Guest Mode" },
+    "attributes": {
+      "friendly_name": "Guest Mode"
+    },
     "last_updated": "2026-11-20T10:00:00+00:00"
   }
 ]

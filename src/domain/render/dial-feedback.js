@@ -3,7 +3,7 @@ import { isUnavailableState } from '../entity-store.js';
 import { themeFor } from './theme.js';
 import { escapeXml, truncate } from './key-svg.js';
 
-/** @typedef {{ title: string, valueText: string, style: string, progress: number | null }} DialRender */
+/** @typedef {{ title: string, valueText: string, style: string, progress: number | null, caption?: string }} DialRender */
 
 const text = (value) => (typeof value === 'string' && value.trim() ? value.trim() : '');
 const objectId = (entityId) => (typeof entityId === 'string' && entityId.includes('.') ? entityId.split('.')[1] : '');
@@ -21,10 +21,16 @@ export function formatValue(value) {
  *   label?: string,
  *   t: (key: string) => string,
  *   connected: boolean,
+ *   caption?: string,
  * }} params
  * @returns {DialRender}
  */
-export function dialRender({ entity, entityId, attribute, value, label, t, connected }) {
+export function dialRender({ entity, entityId, attribute, value, label, t, connected, caption }) {
+  const render = dialRenderCore({ entity, entityId, attribute, value, label, t, connected });
+  return caption ? { ...render, caption } : render;
+}
+
+function dialRenderCore({ entity, entityId, attribute, value, label, t, connected }) {
   const id = entity?.entityId ?? entityId ?? '';
   const title = text(label) || entity?.friendlyName || objectId(id);
   const problem = (key) => ({ title, valueText: t(key), style: 'unavailable', progress: null });
@@ -64,6 +70,11 @@ export function dialSvg(render) {
   if (typeof render.progress === 'number' && render.progress > 0) {
     parts.push(
       `<path class="progress" d="${arc(START, Math.min(SWEEP - 0.01, SWEEP * render.progress))}" fill="none" stroke="${colors.fg}" stroke-width="8" stroke-linecap="round"/>`,
+    );
+  }
+  if (render.caption) {
+    parts.push(
+      `<text class="caption" x="50" y="34" font-family="sans-serif" font-size="11" fill="${colors.accent}" text-anchor="middle" dominant-baseline="middle">${escapeXml(truncate(render.caption, 10))}</text>`,
     );
   }
   if (render.valueText) {

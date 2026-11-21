@@ -24,6 +24,8 @@ const en = {
   'status.done': 'OK',
   'status.invalid': 'Invalid',
   'status.setup': 'Setup',
+  'attr.short.light.brightness': 'Bright',
+  'attr.short.light.color_temp': 'Colour',
 };
 
 /**

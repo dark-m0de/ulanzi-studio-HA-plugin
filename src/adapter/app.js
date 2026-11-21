@@ -57,9 +57,15 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
   });
   // Long-press edit mode: at most one session at a time (data-model §6).
   const editSession = new EditSessionBroker({ clock });
+  // Edit-mode transitions with their reason (no entity IDs) help diagnose device reports.
+  editSession.onChange(({ session, reason }) => {
+    logger.info(session ? `edit mode ${reason === 'switched_value' ? 'switched value' : reason}` : `edit mode ended (${reason})`);
+  });
   /** @type {Map<string, { type: string, instance: any }>} */
   const registry = new Map();
   const statusListeners = new Set();
+  /** Called on every key/dial input, before the event is dispatched (wakes the device display). */
+  const inputListeners = new Set();
 
   const app = {
     ud,
@@ -86,6 +92,11 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
     onStatus(fn) {
       statusListeners.add(fn);
       return () => statusListeners.delete(fn);
+    },
+    /** @param {() => void} fn */
+    onUserInput(fn) {
+      inputListeners.add(fn);
+      return () => inputListeners.delete(fn);
     },
     dispose() {
       for (const { instance } of registry.values()) safeCall(instance, 'dispose');
@@ -162,6 +173,13 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
   // The SDK registration method has the same name as the instance handler (e.g. onKeyDown).
   for (const method of Object.values(ACTION_EVENTS)) {
     ud[method]((message) => {
+      for (const fn of [...inputListeners]) {
+        try {
+          fn();
+        } catch (err) {
+          logger.error(`input listener failed: ${err?.stack ?? err}`);
+        }
+      }
       const entry = registry.get(message.context);
       if (entry) safeCall(entry.instance, method, message);
     });
