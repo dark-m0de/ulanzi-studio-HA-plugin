@@ -142,3 +142,35 @@ test('media players, climates, covers and fans can be edited too (US5)', () => {
   }
   assert.equal(broker.start({ sourceContext: 'k', entity: e('cover.garage') }), 'ineligible');
 });
+
+// --- feature 002: switchAttribute (T025) ---------------------------------------------------
+
+test('switchAttribute cycles the edited value and emits switched_value', () => {
+  const { broker, changes, e } = setup();
+  broker.registerDial('d');
+  broker.start({ sourceContext: 'k', entity: e('light.desk') });
+  assert.equal(broker.switchAttribute(e('light.desk')), true);
+  assert.equal(broker.session.attributeId, 'light.color_temp');
+  assert.deepEqual(changes.at(-1), { session: broker.session, reason: 'switched_value' });
+  broker.switchAttribute(e('light.desk'));
+  assert.equal(broker.session.attributeId, 'light.brightness');
+});
+
+test('switchAttribute changes nothing for single-value entities or when idle', () => {
+  const { broker, e } = setup();
+  broker.registerDial('d');
+  assert.equal(broker.switchAttribute(e('light.desk')), false, 'idle');
+  broker.start({ sourceContext: 'k', entity: e('light.living_room') });
+  assert.equal(broker.switchAttribute(e('light.living_room')), false);
+  assert.equal(broker.session.attributeId, 'light.brightness');
+});
+
+test('a new session starts with the default edit value again (FR-023)', () => {
+  const { broker, e } = setup();
+  broker.registerDial('d');
+  broker.start({ sourceContext: 'k', entity: e('light.desk') });
+  broker.switchAttribute(e('light.desk'));
+  broker.end('source_press');
+  broker.start({ sourceContext: 'k', entity: e('light.desk') });
+  assert.equal(broker.session.attributeId, 'light.brightness');
+});

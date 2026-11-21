@@ -43,6 +43,33 @@
           <option value="false" data-localize="pi.no">pi.no</option>
         </select>
       </div>
+
+      <!-- Feature 002: action on press -->
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>pi.press</div>
+        <select class="uspi-item-value" name="pressAction" id="pressAction"></select>
+      </div>
+      <div class="uspi-item" data-press="favorite">
+        <div class="uspi-item-label" data-localize>pi.favoriteValue</div>
+        <input class="uspi-item-value" type="number" name="favoriteValue" id="favoriteValue" step="any">
+      </div>
+      <div class="uspi-item" data-press="service">
+        <div class="uspi-item-label" data-localize>pi.service.domain</div>
+        <input class="uspi-item-value" type="text" name="pressDomain" spellcheck="false" placeholder="light">
+      </div>
+      <div class="uspi-item" data-press="service">
+        <div class="uspi-item-label" data-localize>pi.service.name</div>
+        <input class="uspi-item-value" type="text" name="pressServiceName" spellcheck="false" placeholder="turn_on">
+      </div>
+      <div class="uspi-item" data-press="service">
+        <div class="uspi-item-label" data-localize>pi.service.target</div>
+        <input class="uspi-item-value" type="text" name="pressTarget" spellcheck="false" placeholder="light.kitchen">
+      </div>
+      <div class="uspi-item" data-press="service">
+        <div class="uspi-item-label" data-localize>pi.service.data</div>
+        <input class="uspi-item-value" type="text" name="pressData" id="pressData" spellcheck="false" placeholder='{"brightness_pct": 100}'>
+      </div>
+      <div class="tip error hidden" id="pressDataError" data-localize>error.invalidJson</div>
     </form>
   </div>
 
@@ -58,25 +85,75 @@
     const noneHint = document.getElementById('attribute-none');
     const stepFine = document.getElementById('stepFine');
     const stepCoarse = document.getElementById('stepCoarse');
+    const pressSelect = document.getElementById('pressAction');
+    const favoriteInput = document.getElementById('favoriteValue');
+    const pressData = document.getElementById('pressData');
+    const pressDataError = document.getElementById('pressDataError');
     let capabilities = [];
+    let pressActions = {};
+    let binding = null;
+
+    const activeCapability = () => capabilities.find((c) => c.id === attributeSelect.value);
 
     function showDefaults() {
-      const cap = capabilities.find((c) => c.id === attributeSelect.value);
+      const cap = activeCapability();
       const unit = cap ? cap.unit : '';
       stepFine.placeholder = cap ? HADeck.t('pi.default', { value: cap.defaultFine + unit }) : '';
       stepCoarse.placeholder = cap ? HADeck.t('pi.default', { value: cap.defaultCoarse + unit }) : '';
+      favoriteInput.placeholder = cap ? HADeck.t('pi.favoriteRange', { min: cap.min, max: cap.max, unit }) : '';
     }
 
-    function loadCapabilities(entityId, selected) {
+    // Only the fields of the selected press action are visible (FR-031).
+    function showPressFields() {
+      document.querySelectorAll('[data-press]').forEach((el) => {
+        el.classList.toggle('hidden', el.dataset.press !== pressSelect.value);
+      });
+      validatePressData();
+    }
+
+    function validatePressData() {
+      let ok = true;
+      if (pressSelect.value === 'service' && pressData.value.trim()) {
+        try {
+          const parsed = JSON.parse(pressData.value);
+          ok = parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed);
+        } catch (e) {
+          ok = false;
+        }
+      }
+      pressDataError.classList.toggle('hidden', ok);
+    }
+
+    // Offers the press actions the selected value supports; resets an unsupported choice (FR-031).
+    function fillPressActions(selected) {
+      const ids = pressActions[attributeSelect.value] || ['none'];
+      pressSelect.innerHTML = '';
+      ids.forEach((id) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = HADeck.t('pi.press.' + id);
+        pressSelect.appendChild(option);
+      });
+      const wanted = selected || 'default';
+      const value = ids.includes(wanted) ? wanted : ids.includes('default') ? 'default' : ids[0];
+      pressSelect.value = value;
+      showPressFields();
+      if (selected && value !== selected && binding) binding.save();
+    }
+
+    function loadCapabilities(entityId, selectedAttribute, selectedPress) {
       attributeSelect.innerHTML = '';
       capabilities = [];
+      pressActions = {};
       if (!entityId) {
         noneHint.classList.add('hidden');
         showDefaults();
+        fillPressActions(selectedPress);
         return Promise.resolve();
       }
       return HADeck.request('entity.capabilities', { entityId }).then((res) => {
         capabilities = (res && res.attributes) || [];
+        pressActions = (res && res.pressActions) || {};
         capabilities.forEach((cap) => {
           const option = document.createElement('option');
           option.value = cap.id;
@@ -84,19 +161,26 @@
           attributeSelect.appendChild(option);
         });
         noneHint.classList.toggle('hidden', capabilities.length > 0);
-        if (selected && capabilities.some((c) => c.id === selected)) attributeSelect.value = selected;
+        if (selectedAttribute && capabilities.some((c) => c.id === selectedAttribute)) attributeSelect.value = selectedAttribute;
         showDefaults();
+        fillPressActions(selectedPress);
       }).catch(() => {});
     }
 
     HADeck.mountConnectionBlock('#hadeck-connection');
-    const binding = HADeck.bindForm('#property-inspector', {
-      onLoad: (settings) => loadCapabilities(settings.entityId, settings.attributeId),
+    binding = HADeck.bindForm('#property-inspector', {
+      onLoad: (settings) => loadCapabilities(settings.entityId, settings.attributeId, settings.pressAction),
     });
     entityInput.addEventListener('change', () => {
-      loadCapabilities(entityInput.value.trim()).then(binding.save);
+      loadCapabilities(entityInput.value.trim(), null, pressSelect.value).then(binding.save);
     });
-    attributeSelect.addEventListener('change', showDefaults);
+    attributeSelect.addEventListener('change', () => {
+      showDefaults();
+      fillPressActions(pressSelect.value);
+    });
+    pressSelect.addEventListener('change', showPressFields);
+    pressData.addEventListener('input', validatePressData);
+    showPressFields();
     HADeck.mountEntityPicker(entityInput, {
       domains: ['light', 'media_player', 'climate', 'cover', 'fan', 'input_number', 'number'],
     });

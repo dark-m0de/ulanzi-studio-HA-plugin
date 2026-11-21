@@ -9,8 +9,8 @@ an Ulanzi Deck. Built on the official
 | Action | Hardware | What it does |
 |---|---|---|
 | **HA Toggle** | key | Toggles a light, switch, fan, cover, media player, thermostat or `input_boolean` and shows its live state (brightness in % for dimmable lights). A long press starts edit mode for the Dynamic Dial or runs a configurable alternative. |
-| **HA Dial** | dial | Bound to one value of one entity: brightness, colour temperature, volume, target temperature, cover position, fan speed or an `input_number`/`number`. Turn = fine steps, turn while pressed = coarse steps, press = toggle (media players: play/pause). |
-| **HA Dynamic Dial** | dial | Follows the entity of a long-pressed HA Toggle key: brightness, volume, temperature, position or fan speed – one dial for any number of entities. |
+| **HA Dial** | dial | Bound to one value of one entity: brightness, colour temperature, volume, target temperature, cover position, fan speed or an `input_number`/`number`. Turn = fine steps, turn while pressed = coarse steps. **Press**: configurable – toggle / play-pause (default), switch the controlled value (e.g. brightness ↔ colour temperature), set a favourite value, mute, next track, cycle thermostat mode or preset, stop a moving cover, fan oscillation or preset, call any service, or nothing. |
+| **HA Dynamic Dial** | dial | Follows the entity of a long-pressed HA Toggle key: brightness, volume, temperature, position or fan speed – one dial for any number of entities. **Press**: end editing (default), toggle the edited entity, switch the controlled value, or nothing. |
 | **HA Trigger** | key | Activates a scene or script, or triggers an automation. |
 | **HA Sensor** | key | Shows a sensor value with unit; turns orange outside optional limits. |
 | **HA Service Call** | key | Calls any service with target entities and JSON data. |
@@ -68,9 +68,14 @@ removed from every log line.
 ### Use only one Dynamic Dial
 
 Assign **HA Dynamic Dial** to one dial per device. Then hold any HA Toggle key (default 500 ms):
-the key shows **EDIT** and the Dynamic Dial controls that entity until you press the key again,
-after 10 s without input, or when you switch pages. If you assign the Dynamic Dial to several dials,
-they all control the same value.
+the key shows **EDIT** and the Dynamic Dial controls that entity until you press the key or the
+Dynamic Dial, after 10 s without input, or when you switch pages. Pressing the Dynamic Dial means
+"done" by default; in its settings you can instead let a press toggle the entity or switch between
+brightness and colour temperature. If you assign the Dynamic Dial to several dials, they all control
+the same value.
+
+When an entity has more than one controllable value (e.g. a lamp with colour temperature), the dial
+and the edited key show a short name of the value that is currently controlled.
 
 ## Development
 

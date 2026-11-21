@@ -87,6 +87,20 @@ export class DialController {
     return value;
   }
 
+  /**
+   * Sets an absolute value (favourite value, feature 002) through the same path as rotation:
+   * clamp/round, light turn-on, optimistic display, shared per-entity throttle.
+   * @param {number} raw
+   * @returns {number | null} the new display value, or null if not possible
+   */
+  setValue(raw) {
+    const s = this.supported();
+    if (!s || !Number.isFinite(raw)) return null;
+    const { value, call } = s.attribute.toServiceCall(s.entity, raw, { offAtMin: false });
+    this.control.setTarget(this.attributeId, value, call);
+    return value;
+  }
+
   /** Call after an HA state change: drops the optimistic value once HA reports it. */
   reconcile() {
     const s = this.supported();

@@ -5,7 +5,7 @@ import { createPressDetector } from '../../domain/long-press.js';
 import { pressActionFor } from '../../domain/press-actions.js';
 import { parseServiceCall } from '../../domain/service-call.js';
 import { isUnavailableState } from '../../domain/entity-store.js';
-import { getAttribute } from '../../domain/attributes/index.js';
+import { getAttribute, supportedAttributes } from '../../domain/attributes/index.js';
 import { toggleModel, editModel } from '../../domain/render/key-model.js';
 import { renderKeySvg } from '../../domain/render/key-svg.js';
 
@@ -34,8 +34,10 @@ export class ToggleAction extends ActionBase {
 
   onSettings(settings) {
     this.detector.setThreshold(settings?.longPressMs);
-    // The edited entity belongs to the old binding; do not keep editing it.
-    if (this.isEditSource) this.app.editSession.end('settings');
+    // Ulanzi Studio re-sends unchanged settings when a key is selected or pressed while it is open.
+    // Only a new entity binding invalidates the running edit session.
+    const nextEntityId = typeof settings?.entityId === 'string' ? settings.entityId.trim() : '';
+    if (this.isEditSource && nextEntityId !== this.entityId) this.app.editSession.end('settings');
     super.onSettings(settings);
   }
 
@@ -137,7 +139,9 @@ export class ToggleAction extends ActionBase {
     const entity = this.entity;
     const optimistic = this.app.controls.get(this.entityId).getOptimistic(attributeId);
     const value = optimistic ? optimistic.value : entity && attribute ? attribute.read(entity) : null;
-    return { value, unit: entity && attribute ? attribute.unit(entity) : '' };
+    // Name of the edited value when the entity has more than one (feature 002, FR-021).
+    const caption = entity && supportedAttributes(entity).length >= 2 ? this.app.t(`attr.short.${attributeId}`) : undefined;
+    return { value, unit: entity && attribute ? attribute.unit(entity) : '', caption };
   }
 
   render({ force = false } = {}) {

@@ -1,19 +1,31 @@
-// HA Dynamic Dial (US4): follows the entity put into edit mode by a long-pressed HA Toggle key.
-// All Dynamic Dials share the session's EntityControl, so they and the source key stay in sync.
+// HA Dynamic Dial (feature 001 US4): follows the entity put into edit mode by a long-pressed HA
+// Toggle key. All Dynamic Dials share the session's EntityControl, so they and the source key stay
+// in sync. Press action: end editing (default), toggle, switch value or none (feature 002).
 import { DialAction } from './dial.js';
 
 export class DynamicDialAction extends DialAction {
   #unsubscribeSession = null;
+  #unsubscribeInput = null;
+  /**
+   * True after edit mode timed out: the idle hint is held back until the next user input.
+   * The D200X may already show its idle clock then, and Studio does not report that as inactive,
+   * so an immediate feedback would briefly replace the clock (device report 2026-11-21).
+   * A public field on purpose: render() already runs inside the base-class constructor, before
+   * private fields of this class exist.
+   */
+  hintDeferred = false;
 
   constructor(ctx) {
     // The broker must know this dial before the base class renders.
     ctx.app.editSession.registerDial(ctx.context, { timeoutS: ctx.settings?.editTimeoutS });
     super(ctx);
-    this.#unsubscribeSession = this.app.editSession.onChange(() => {
+    this.#unsubscribeSession = this.app.editSession.onChange(({ session, reason }) => {
+      this.hintDeferred = !session && reason === 'timeout';
       this.bindEntity();
       this.bindControl();
       this.render();
     });
+    this.#unsubscribeInput = this.app.onUserInput(() => this.#flush());
   }
 
   get session() {
@@ -30,6 +42,10 @@ export class DynamicDialAction extends DialAction {
 
   get label() {
     return '';
+  }
+
+  get dialKind() {
+    return 'dynamic';
   }
 
   onSettings(settings) {
@@ -50,9 +66,36 @@ export class DynamicDialAction extends DialAction {
     super.onDialRotate(message);
   }
 
-  press() {
+  /** Idle dials ignore presses (FR-013). */
+  handlePress() {
     if (!this.session) return undefined;
-    return super.press();
+    return super.handlePress();
+  }
+
+  /** Switches the edited value for the whole session; all Dynamic Dials and the key follow (FR-022). */
+  onSwitchValue() {
+    if (!this.app.editSession.switchAttribute(this.entity)) this.app.ud.toast(this.app.t('hint.noOtherValue'));
+  }
+
+  /** "Done": ends edit mode like a short press on the edited key (FR-012). */
+  onEndEdit() {
+    this.app.editSession.end('dial_press');
+  }
+
+  render() {
+    if (this.hintDeferred) return;
+    super.render();
+  }
+
+  onSetActive(active) {
+    if (active) this.hintDeferred = false;
+    super.onSetActive(active);
+  }
+
+  #flush() {
+    if (!this.hintDeferred) return;
+    this.hintDeferred = false;
+    this.render();
   }
 
   buildRender() {
@@ -62,6 +105,7 @@ export class DynamicDialAction extends DialAction {
 
   dispose() {
     this.#unsubscribeSession?.();
+    this.#unsubscribeInput?.();
     super.dispose();
     this.app.editSession.unregisterDial(this.context);
   }
