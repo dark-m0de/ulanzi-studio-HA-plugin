@@ -58,13 +58,20 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
       logger.warn(`service call ${call.domain}.${call.service} failed (${err?.key ?? 'error'}${err?.haCode ? `: ${err.haCode}` : ''})`),
   });
   // Long-press edit mode: at most one session at a time (data-model §6).
-  const editSession = new EditSessionBroker({ clock });
+  const editSession = new EditSessionBroker({ clock, getEntity: (id) => store.get(id) });
   // HA icon definitions for keys (feature 003); reloaded on every connection.
   const iconData = new IconData();
   const iconLoader = createIconLoader({ client, iconData, logger });
   // Edit-mode transitions with their reason (no entity IDs) help diagnose device reports.
+  // With selected values (feature 004) only the position is logged, e.g. "(2/4)".
   editSession.onChange(({ session, reason }) => {
-    logger.info(session ? `edit mode ${reason === 'switched_value' ? 'switched value' : reason}` : `edit mode ended (${reason})`);
+    if (!session) {
+      logger.info(`edit mode ended (${reason})`);
+      return;
+    }
+    const position = session.targets.length ? ` (${session.targetIndex + 1}/${session.targets.length})` : '';
+    const what = { switched_value: 'switched value', switched_target: 'switched target' }[reason] ?? reason;
+    logger.info(`edit mode ${what}${position}`);
   });
   /** @type {Map<string, { type: string, instance: any }>} */
   const registry = new Map();

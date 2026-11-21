@@ -263,3 +263,135 @@ test('entity.capabilities reports long-press eligibility for the new domains', a
     assert.equal((await h.piRequest('entity.capabilities', { entityId })).payload.longPressEligible, eligible, entityId);
   }
 });
+
+// --- Feature 004 US2: jumping between selected values (contracts/edit-session-targets.md §4) ---
+
+const V = (entityId, attributeId) => ({ entityId, attributeId });
+const living = V('light.living_room', 'light.brightness');
+const deskB = V('light.desk', 'light.brightness');
+const deskCt = V('light.desk', 'light.color_temp');
+const captionOf = (ctx) => (dialSvgOf(ctx)?.svg.match(/class="caption"[^>]*>([^<]*)</) || [])[1] ?? null;
+const pressDynamic = (key = '1_0') => {
+  h.ud.emitAction('dialdown', 'dynamicdial', { key });
+  h.ud.emitAction('dialup', 'dynamicdial', { key });
+};
+function addValuesKey(list, extra = {}) {
+  return addKey('switch.coffee', '0_0', { longPress: 'edit_values', editValues: JSON.stringify(list), ...extra });
+}
+const holdAndRelease = () => {
+  holdKey();
+  releaseKey();
+};
+
+test('a Dynamic Dial press jumps through the selected values and wraps around (FR-010, FR-012)', async () => {
+  h = await createHarness();
+  const key = addValuesKey([living, deskB, deskCt]);
+  const dial = addDynamic('1_0');
+  holdAndRelease();
+  assert.equal(dialSvgOf(dial).title, 'Living Room');
+  assert.equal(captionOf(dial), 'Bright', 'value name shown with several selected values');
+  pressDynamic();
+  assert.equal(dialSvgOf(dial).title, 'Desk Lamp');
+  assert.equal(captionOf(dial), 'Bright');
+  assert.match(keyIcon(key), />Desk Lamp</);
+  pressDynamic();
+  assert.equal(captionOf(dial), 'Colour');
+  assert.match(keyIcon(key), />Colour</);
+  pressDynamic();
+  assert.equal(dialSvgOf(dial).title, 'Living Room');
+  await settle(30);
+  assert.equal(h.server.messages('call_service').length, 0, 'jumping sends nothing');
+});
+
+test('turning after a jump changes only the shown value (SC-004)', async () => {
+  h = await createHarness();
+  addValuesKey([living, deskB, deskCt]);
+  addDynamic('1_0');
+  holdAndRelease();
+  pressDynamic();
+  pressDynamic();
+  rotateDynamic('right');
+  await waitFor(() => h.server.messages('call_service').length === 1);
+  await settle(30);
+  const calls = h.server.messages('call_service');
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].target, { entity_id: 'light.desk' });
+  assert.ok('color_temp_kelvin' in calls[0].service_data);
+});
+
+test('a press while rotating does not jump', async () => {
+  h = await createHarness();
+  addValuesKey([living, deskB]);
+  const dial = addDynamic('1_0');
+  holdAndRelease();
+  h.ud.emitAction('dialdown', 'dynamicdial', { key: '1_0' });
+  h.ud.emitAction('dialrotate', 'dynamicdial', { key: '1_0', rotateEvent: 'hold-right' });
+  h.ud.emitAction('dialup', 'dynamicdial', { key: '1_0' });
+  assert.equal(dialSvgOf(dial).title, 'Living Room');
+});
+
+test('with a single selected value the configured press action applies (FR-011)', async () => {
+  h = await createHarness();
+  addValuesKey([deskB]);
+  const dial = addDynamic('1_0');
+  holdAndRelease();
+  pressDynamic();
+  assert.equal(h.app.editSession.session, null, 'default press action ends editing');
+  assert.equal(dialSvgOf(dial).title, 'Hold a key');
+});
+
+test('with a single selected value, switch_value switches between the entity values', async () => {
+  h = await createHarness();
+  addValuesKey([deskB]);
+  const dial = addDynamic('1_0', { pressAction: 'switch_value' });
+  holdAndRelease();
+  pressDynamic();
+  assert.equal(h.app.editSession.session.attributeId, 'light.color_temp');
+  assert.equal(captionOf(dial), 'Colour');
+});
+
+test('a jump restarts the edit-mode timeout (FR-013)', async () => {
+  h = await createHarness();
+  addValuesKey([living, deskB]);
+  addDynamic('1_0');
+  holdAndRelease();
+  h.clock.tick(9_000);
+  pressDynamic();
+  h.clock.tick(9_000);
+  assert.notEqual(h.app.editSession.session, null);
+});
+
+test('when the edited entity becomes unavailable, editing moves on or ends (FR-015)', async () => {
+  h = await createHarness();
+  addValuesKey([deskB, living]);
+  const dial = addDynamic('1_0');
+  holdAndRelease();
+  h.server.emitStateChanged('light.desk', { ...rawState('light.desk'), state: 'unavailable' });
+  await waitFor(() => h.app.editSession.session?.entityId === 'light.living_room', { message: 'moved on' });
+  assert.equal(dialSvgOf(dial).title, 'Living Room');
+  h.server.emitStateChanged('light.living_room', { ...rawState('light.living_room'), state: 'unavailable' });
+  await waitFor(() => h.app.editSession.session === null, { message: 'ended' });
+});
+
+test('an unavailable entry that is not edited is skipped by the next press', async () => {
+  h = await createHarness();
+  addValuesKey([living, deskB, V('cover.blinds', 'cover.position')]);
+  const dial = addDynamic('1_0');
+  holdAndRelease();
+  h.server.emitStateChanged('light.desk', { ...rawState('light.desk'), state: 'unavailable' });
+  await waitFor(() => h.app.store.get('light.desk')?.state === 'unavailable');
+  assert.equal(h.app.editSession.session.entityId, 'light.living_room', 'current target unaffected');
+  pressDynamic();
+  assert.equal(dialSvgOf(dial).title, 'Blinds');
+});
+
+test('all Dynamic Dials follow a jump', async () => {
+  h = await createHarness();
+  addValuesKey([living, deskB]);
+  const d1 = addDynamic('1_0');
+  const d2 = addDynamic('1_1');
+  holdAndRelease();
+  pressDynamic('1_0');
+  assert.equal(dialSvgOf(d1).title, 'Desk Lamp');
+  assert.equal(dialSvgOf(d2).title, 'Desk Lamp');
+});

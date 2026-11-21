@@ -11,7 +11,7 @@ afterEach(async () => {
 const caps = async (entityId) => (await h.piRequest('entity.capabilities', { entityId })).payload;
 // Feature-001 fields only; pressActions (feature 002) has its own test below.
 const base = async (entityId) => {
-  const { pressActions, ...rest } = await caps(entityId);
+  const { pressActions, friendlyName, ...rest } = await caps(entityId);
   return rest;
 };
 
@@ -51,4 +51,11 @@ test('entity.capabilities lists the supported HA Dial press actions per attribut
   });
   assert.deepEqual((await caps('light.living_room')).pressActions, { 'light.brightness': ['default', 'favorite', 'service', 'none'] });
   assert.deepEqual((await caps('light.nope')).pressActions, {});
+});
+
+// Feature 004: names for the selected-values list (contracts/toggle-selected-values-settings.md §4).
+test('entity.capabilities returns the friendly name, or null for unknown entities', async () => {
+  h = await createHarness();
+  assert.equal((await caps('light.desk')).friendlyName, 'Desk Lamp');
+  assert.deepEqual(await caps('light.unknown'), { friendlyName: null, attributes: [], longPressEligible: false, pressActions: {} });
 });

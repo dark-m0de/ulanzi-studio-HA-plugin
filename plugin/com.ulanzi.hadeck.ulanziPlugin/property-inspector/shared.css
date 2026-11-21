@@ -85,3 +85,52 @@ textarea.uspi-item-value {
 .hadeck-icon-notfound {
   margin: 0 0 8px;
 }
+
+/* Selected values of the Toggle key (feature 004). */
+.hadeck-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+  min-height: 28px;
+  align-items: center;
+}
+
+.hadeck-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--uspi-bordercolor);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.hadeck-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hadeck-chip button {
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.hadeck-value-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.hadeck-value-buttons button {
+  font-size: 12px;
+}

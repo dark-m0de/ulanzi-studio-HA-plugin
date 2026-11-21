@@ -49,7 +49,7 @@ description: "Task list for Dynamic Dial for selected values"
 
 **Purpose**: Branch and version.
 
-- [ ] T001 Create and switch to the branch `004-dial-selected-entities` (`git switch -c 004-dial-selected-entities`). Bump the version to `0.4.0` with `npm version 0.4.0 --no-git-tag-version` (updates `package.json` and `package-lock.json`) and set `"Version": "0.4.0"` in `plugin/…/manifest.json`.
+- [X] T001 *(Implemented on the existing branch `004-dial-selected-values`, no new branch.)* Bump the version to `0.4.0` with `npm version 0.4.0 --no-git-tag-version` (updates `package.json` and `package-lock.json`) and set `"Version": "0.4.0"` in `plugin/…/manifest.json`.
 
 ---
 
@@ -62,20 +62,20 @@ Every story needs them. There is no visible change yet: no key calls `startTarge
 
 ### Tests first (must fail before the implementation below)
 
-- [ ] T002 [P] Create `tests/unit/domain/selected-values.test.js` covering every row of [contracts/edit-session-targets.md](contracts/edit-session-targets.md) §1 (`parseSelectedValues`) and §2 (`targetUsable`). Use `EntityStore` + `loadStates()` for entity states; for the unavailable case mutate `light.desk` to `state: 'unavailable'`.
-- [ ] T003 [P] Extend `tests/unit/domain/edit-session.test.js` (contract §3):
+- [X] T002 [P] Create `tests/unit/domain/selected-values.test.js` covering every row of [contracts/edit-session-targets.md](contracts/edit-session-targets.md) §1 (`parseSelectedValues`) and §2 (`targetUsable`). Use `EntityStore` + `loadStates()` for entity states; for the unavailable case mutate `light.desk` to `state: 'unavailable'`.
+- [X] T003 [P] Extend `tests/unit/domain/edit-session.test.js` (contract §3):
   - change `setup()` to `new EditSessionBroker({ clock, getEntity: (id) => store.get(id) })`
   - update the two existing `deepEqual(broker.session, …)` assertions to include `targets: []` and `targetIndex: -1`
   - add one test per scenario row of contract §3: `startTargets` (skip unusable first entry, `ineligible` for empty/unusable with and without dial, `no_dial`, `switched`), `nextTarget` (order, wrap-around, skip an unavailable entry via a mutated store state, `false` with no other usable entry, `false` in classic mode, timer re-arm checked with `clock.tick(9_000)` before and after), `targetUnusable` (current → moves on; current with none left → ends with `unavailable`; not current → no change), `entityUnavailable` delegating in target mode, a fresh `startTargets` starting again at the first usable index, and `switchAttribute` with exactly one target
 
 ### Implementation
 
-- [ ] T004 [P] Create `src/domain/selected-values.js` (research R-01/R-03, data-model §1–§3):
+- [X] T004 [P] Create `src/domain/selected-values.js` (research R-01/R-03, data-model §1–§3):
   - `parseSelectedValues(value)`: accepts a JSON string or an array; keeps objects with a trimmed non-empty `entityId` and a known `attributeId` (`getAttribute`); de-duplicates pairs in order; returns `[]` on any error
   - `targetUsable(target, entity)`: entity present, `!isUnavailableState(entity)` (from `./entity-store.js`), attribute known, domain matches, `isSupported(entity)`
   - `sameTarget(a, b)`
   - Done when T002 passes.
-- [ ] T005 Extend `src/domain/edit-session.js` (research R-02/R-03, data-model §4):
+- [X] T005 Extend `src/domain/edit-session.js` (research R-02/R-03, data-model §4):
   - constructor `{ clock, getEntity = () => null }`
   - classic `start()` sets `targets: []` and `targetIndex: -1`
   - `startTargets({ sourceContext, targets })`: first usable index, otherwise `ineligible`; then the `no_dial` check; set `entityId`/`attributeId` from the target; arm the timer; emit `started`/`switched`
@@ -85,7 +85,7 @@ Every story needs them. There is no visible change yet: no key calls `startTarge
   - `switchAttribute` keeps `targets`/`targetIndex` (spread)
   - update the `EditSession` typedef
   - Done when T003 passes.
-- [ ] T006 In `src/adapter/app.js`:
+- [X] T006 In `src/adapter/app.js`:
   - construct the broker with `getEntity: (id) => store.get(id)`
   - extend the `editSession.onChange` info log: `switched_target` → `edit mode switched target (i/N)`; `started`/`switched` with targets → append ` (i/N)`; no IDs (research R-07)
   - Run `npm test`: everything green.
@@ -112,7 +112,7 @@ On the device: quickstart V-01, V-02.
 
 ### Tests first
 
-- [ ] T007 [P] [US1] Create `tests/integration/adapter/toggle-selected-values.test.js` ([contract](contracts/toggle-selected-values-settings.md) §2, [contract](contracts/edit-session-targets.md) §4). Use the key `switch.coffee`, `longPress: 'edit_values'` and `addDynamic()`:
+- [X] T007 [P] [US1] Create `tests/integration/adapter/toggle-selected-values.test.js` ([contract](contracts/toggle-selected-values-settings.md) §2, [contract](contracts/edit-session-targets.md) §4). Use the key `switch.coffee`, `longPress: 'edit_values'` and `addDynamic()`:
   - `[desk/brightness]`: holding shows `>EDIT<` with the desk friendly name and value; `rotateDynamic('left')` sends `light.turn_on` with target `light.desk`; no `switch.*` call
   - the key label is ignored in this mode: with `label: 'Coffee'` the edit SVG still shows the desk name
   - short press ends the session (the Dynamic Dial shows the idle hint); the next short press sends `switch.toggle` for `switch.coffee`
@@ -126,11 +126,11 @@ On the device: quickstart V-01, V-02.
   - classic `longPress: 'edit'` and a missing `longPress` on `light.living_room` behave as before (it edits its own entity)
   - a value of the key's own entity is also selected: a `light.living_room` key with `[living_room/brightness, desk/brightness]` edits the living room first. When `light.living_room` becomes unavailable while it is the current target, the session moves to `light.desk` instead of ending (the key's `entityUnavailable` delegates to `targetUnusable`).
   - a key without its own `entityId` but with `[desk/brightness]`: the long press starts edit mode; after it ends, a short press shows the usual alert and sends no service call
-- [ ] T008 [P] [US1] Extend `tests/integration/adapter/pi-bridge-capabilities.test.js`: `entity.capabilities` returns `friendlyName` for `light.desk` and `friendlyName: null` for an unknown entity (contract §4).
+- [X] T008 [P] [US1] Extend `tests/integration/adapter/pi-bridge-capabilities.test.js`: `entity.capabilities` returns `friendlyName` for `light.desk` and `friendlyName: null` for an unknown entity (contract §4).
 
 ### Implementation
 
-- [ ] T009 [US1] Extend `src/adapter/actions/toggle.js` (research R-05):
+- [X] T009 [US1] Extend `src/adapter/actions/toggle.js` (research R-05):
   - import `parseSelectedValues`
   - `longPress()`: new `case 'edit_values': return this.#startTargets();`
     - `#startTargets()`: not connected → `showAlert`; call `startTargets({ sourceContext, targets: parseSelectedValues(this.settings.editValues) })`; `ineligible` → `showAlert` (no service call); `no_dial` → existing toast
@@ -141,12 +141,12 @@ On the device: quickstart V-01, V-02.
   - `#followSession()`: subscribe to `controls.get(session.entityId)` instead of `this.entityId`
   - `onSettings()`: end the session (`'settings'`) when the key is the source and the trimmed `entityId`, `longPress`, or `JSON.stringify(parseSelectedValues(editValues))` changed
   - Done when T007 passes (except PI-related cases).
-- [ ] T010 [P] [US1] In `src/adapter/pi-handlers.js`, add `friendlyName: entity.friendlyName` to the `entity.capabilities` response, and `friendlyName: null` to the unknown-entity response. Done when T008 passes.
-- [ ] T011 [US1] Extend `plugin/…/property-inspector/toggle.html`:
+- [X] T010 [P] [US1] In `src/adapter/pi-handlers.js`, add `friendlyName: entity.friendlyName` to the `entity.capabilities` response, and `friendlyName: null` to the unknown-entity response. Done when T008 passes.
+- [X] T011 [US1] Extend `plugin/…/property-inspector/toggle.html`:
   - add `<option value="edit_values" data-localize="pi.longPress.editValues">pi.longPress.editValues</option>` right after the `edit` option
   - add a `data-mode="edit_values"` hint `pi.longPress.editValues.hint`
   - add `<input type="hidden" name="editValues" id="editValues">` inside the form (the visible list follows in US3, Phase 4)
-- [ ] T012 [P] [US1] Add `pi.longPress.editValues` and `pi.longPress.editValues.hint` to `plugin/…/en.json` and `plugin/…/de_DE.json`, with the texts from contract §5. Confirm that `tests/unit/locales.test.js` passes.
+- [X] T012 [P] [US1] Add `pi.longPress.editValues` and `pi.longPress.editValues.hint` to `plugin/…/en.json` and `plugin/…/de_DE.json`, with the texts from contract §5. Confirm that `tests/unit/locales.test.js` passes.
 
 **Checkpoint**: US1 works with a single selected value. `npm test` is green. The setting can
 only be written by the harness until US3 adds the PI list, so device validation (V-01, V-02)
@@ -174,26 +174,26 @@ On the device: quickstart V-07, V-08.
 
 ### Tests first
 
-- [ ] T013 [P] [US3] Extend `tests/integration/adapter/pi-bridge-entities.test.js` ([contract](contracts/toggle-selected-values-settings.md) §4a): `entities.list` with `{ controllable: true }` contains `light.living_room`, `light.desk`, `cover.blinds`, `media_player.living_room`, `climate.office`, `fan.bedroom` and `input_number.volume_target`, but not `light.hallway`, `cover.garage`, `switch.coffee`, `sensor.outdoor_temperature` or `scene.evening`. It combines with `domains` and `query`. Without the flag the result is unchanged (existing tests stay green).
+- [X] T013 [P] [US3] Extend `tests/integration/adapter/pi-bridge-entities.test.js` ([contract](contracts/toggle-selected-values-settings.md) §4a): `entities.list` with `{ controllable: true }` contains `light.living_room`, `light.desk`, `cover.blinds`, `media_player.living_room`, `climate.office`, `fan.bedroom` and `input_number.volume_target`, but not `light.hallway`, `cover.garage`, `switch.coffee`, `sensor.outdoor_temperature` or `scene.evening`. It combines with `domains` and `query`. Without the flag the result is unchanged (existing tests stay green).
 
 ### Implementation
 
 (Apart from T013, the PI has no automated test harness. The locale test covers the new keys;
 verify the rest manually per quickstart V-07.)
 
-- [ ] T014 [P] [US3] In `src/adapter/pi-handlers.js`, add the optional parameter `controllable` to `entities.list`: when it is `true`, keep only entities with `supportedAttributes(e).length > 0` (already imported), after the domain and query filters and before `slice`. Done when T013 passes.
+- [X] T014 [P] [US3] In `src/adapter/pi-handlers.js`, add the optional parameter `controllable` to `entities.list`: when it is `true`, keep only entities with `supportedAttributes(e).length > 0` (already imported), after the domain and query filters and before `slice`. Done when T013 passes.
 
-- [ ] T015 [US3] Extend `mountEntityPicker(input, options)` in `plugin/…/property-inspector/shared.js`:
+- [X] T015 [US3] Extend `mountEntityPicker(input, options)` in `plugin/…/property-inspector/shared.js`:
   - option `onChoose(entityId)`: when set, `choose()` calls it instead of writing `input.value` and dispatching `change`
   - option `clearOnChoose`: after choosing, set `input.value = ''`
   - option `controllable`: forwarded as `controllable: true` in the `entities.list` request
   - existing callers are unchanged
-- [ ] T016 [P] [US3] Add chip and value-button styles to `plugin/…/property-inspector/shared.css`:
+- [X] T016 [P] [US3] Add chip and value-button styles to `plugin/…/property-inspector/shared.css`:
   - `.hadeck-chips` (flex-wrap, gap 4px)
   - `.hadeck-chip` and its ✕ button
   - `.hadeck-value-buttons button`
   - match the existing `.hadeck-picker` look
-- [ ] T017 [US3] Build the value list inline in `plugin/…/property-inspector/toggle.html`, inside the `data-mode="edit_values"` section (contract §3):
+- [X] T017 [US3] Build the value list inline in `plugin/…/property-inspector/toggle.html`, inside the `data-mode="edit_values"` section (contract §3):
   - markup:
     - `uspi-item` "Values" (`pi.longPress.editValues.list`) with a `.hadeck-chips` container
     - `uspi-item` with the entity search input (no `name`, placeholder `pi.entity.placeholder`)
@@ -208,7 +208,7 @@ verify the rest manually per quickstart V-07.)
     - clicking a button appends the pair, rewrites, re-renders the chips and removes the button
     - re-render the chips on the form's `hadeck:load` event (register it before `HADeck.bindForm`)
   - `HADeck.request` and `HADeck.t` are already exported by `shared.js`.
-- [ ] T018 [P] [US3] Add `pi.longPress.editValues.list`, `pi.longPress.editValues.remove` and `pi.longPress.editValues.add` to `plugin/…/en.json` and `plugin/…/de_DE.json` (contract §5). Confirm that `tests/unit/locales.test.js` passes.
+- [X] T018 [P] [US3] Add `pi.longPress.editValues.list`, `pi.longPress.editValues.remove` and `pi.longPress.editValues.add` to `plugin/…/en.json` and `plugin/…/de_DE.json` (contract §5). Confirm that `tests/unit/locales.test.js` passes.
 
 **Checkpoint**: The MVP (US1 + US3) is complete and can be set up on the device. `npm test` is green.
 
@@ -235,7 +235,7 @@ On the device: quickstart V-03–V-06.
 
 ### Tests first
 
-- [ ] T019 [P] [US2] Extend `tests/integration/adapter/dynamic-dial.test.js` with a "selected values" block (contract §4). Use the key `switch.coffee`, `longPress: 'edit_values'`:
+- [X] T019 [P] [US2] Extend `tests/integration/adapter/dynamic-dial.test.js` with a "selected values" block (contract §4). Use the key `switch.coffee`, `longPress: 'edit_values'`:
   - jump order and wrap-around as in the Independent Test above, asserting `dialSvgOf(dial).title`, the caption text in the SVG, and the key icon (`keyIcon`) after each jump
   - rotating after each jump changes only the current target (inspect `h.server.messages('call_service')` after `h.clock.tick(200)`)
   - a press while rotating (`dialdown` → `dialrotate` → `dialup`) does not jump
@@ -247,7 +247,7 @@ On the device: quickstart V-03–V-06.
 
 ### Implementation
 
-- [ ] T020 [US2] Extend `src/adapter/actions/dynamic-dial.js` (research R-04):
+- [X] T020 [US2] Extend `src/adapter/actions/dynamic-dial.js` (research R-04):
   - `handlePress()`: when the session exists and `session.targets.length >= 2`, call `this.app.editSession.nextTarget()`; on `false` show the toast `hint.noOtherValue`; return. Otherwise keep the existing path.
   - override `valueCaption`: when `session.targets.length >= 2` return `this.app.t('attr.short.' + this.attributeId)`, otherwise `super.valueCaption`
   - `onEntityChanged()`: when the session has targets and `!targetUsable({ entityId, attributeId }, this.entity)`, call `this.app.editSession.targetUnusable(this.entityId, this.attributeId)` and return (the `onChange` listener rebinds and renders); otherwise `super.onEntityChanged()`
@@ -260,14 +260,14 @@ On the device: quickstart V-03–V-06.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] Confirm that `tests/unit/architecture.test.js` passes with the new `src/domain/selected-values.js`, which imports only domain modules.
-- [ ] T022 [P] Update `README.md`:
+- [X] T021 [P] Confirm that `tests/unit/architecture.test.js` passes with the new `src/domain/selected-values.js`, which imports only domain modules.
+- [X] T022 [P] Update `README.md`:
   - HA Toggle row (line ~13): mention the long-press mode "Dynamic Dial for selected values"
   - section "Use only one Dynamic Dial" (line ~80): a short paragraph with the shutter/lamp example; a dial press jumps between several values; editing ends via the key, timeout or page switch
-- [ ] T023 [P] Write `specs/004-dial-selected-entities/release-notes.md` for v0.4.0, in English, in the same style as `specs/003-ha-entity-icons/release-notes.md`.
-- [ ] T024 Run `npm test`, `npm run build` and `npm run package`. All must succeed.
+- [X] T023 [P] Write `specs/004-dial-selected-entities/release-notes.md` for v0.4.0, in English, in the same style as `specs/003-ha-entity-icons/release-notes.md`.
+- [X] T024 Run `npm test`, `npm run build` and `npm run package`. All must succeed.
 - [ ] T025 Run the device validation (quickstart V-01–V-08) on Windows and macOS and record the results in `specs/004-dial-selected-entities/validation.md`.
-- [ ] T026 Review against the constitution:
+- [X] T026 Review against the constitution:
   - tests green
   - the new log lines in `app.js` contain no entity IDs (log output is not captured by the harness)
   - all new strings in `en.json`/`de_DE.json`

@@ -10,7 +10,7 @@ an Ulanzi Deck. Built on the official
 
 | Action | Hardware | What it does |
 |---|---|---|
-| **HA Toggle** | key | Toggles a light, switch, fan, cover, media player, thermostat or `input_boolean` and shows its live state (brightness in % for dimmable lights). A long press starts edit mode for the Dynamic Dial or runs a configurable alternative. |
+| **HA Toggle** | key | Toggles a light, switch, fan, cover, media player, thermostat or `input_boolean` and shows its live state (brightness in % for dimmable lights). A long press starts edit mode for the Dynamic Dial – for the key's own entity or for values you select (e.g. two shutters' positions) – or runs a configurable alternative. |
 | **HA Dial** | dial | Bound to one value of one entity: brightness, colour temperature, volume, target temperature, cover position, fan speed or an `input_number`/`number`. Turn = fine steps, turn while pressed = coarse steps. **Press**: configurable – toggle / play-pause (default), switch the controlled value (e.g. brightness ↔ colour temperature), set a favourite value, mute, next track, cycle thermostat mode or preset, stop a moving cover, fan oscillation or preset, call any service, or nothing. |
 | **HA Dynamic Dial** | dial | Follows the entity of a long-pressed HA Toggle key: brightness, volume, temperature, position or fan speed – one dial for any number of entities. **Press**: end editing (default), toggle the edited entity, switch the controlled value, or nothing. |
 | **HA Trigger** | key | Activates a scene or script, or triggers an automation. |
@@ -88,6 +88,17 @@ the same value.
 
 When an entity has more than one controllable value (e.g. a lamp with colour temperature), the dial
 and the edited key show a short name of the value that is currently controlled.
+
+### Dynamic Dial for selected values
+
+A key does not have to edit its own entity. Set the HA Toggle key's long press to **Dynamic Dial for
+selected values** and pick one or more values, each an entity plus one of its values: for example a
+light switch on the key, and the brightness and colour temperature of the ceiling lamp plus the
+position of two shutters. The short press still toggles the key's own entity. Holding the key edits
+the first value; with several values, each press on the Dynamic Dial jumps to the next one (and back
+to the first after the last). The dial and the key show which entity and value you are controlling.
+In this mode the dial press is reserved for jumping, so end editing with the key, by waiting 10 s, or
+by switching pages.
 
 ## Development
 

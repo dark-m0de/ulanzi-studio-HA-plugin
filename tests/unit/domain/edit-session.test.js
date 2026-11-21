@@ -5,13 +5,13 @@ import { EntityControlRegistry } from '../../../src/domain/entity-control.js';
 import { DialController } from '../../../src/domain/dial-controller.js';
 import { EntityStore } from '../../../src/domain/entity-store.js';
 import { createManualClock } from '../../support/manual-clock.js';
-import { loadStates } from '../../support/fixtures/index.js';
+import { loadStates, rawState } from '../../support/fixtures/index.js';
 
 function setup() {
   const clock = createManualClock();
-  const broker = new EditSessionBroker({ clock });
   const store = new EntityStore();
   store.load(loadStates());
+  const broker = new EditSessionBroker({ clock, getEntity: (id) => store.get(id) });
   const changes = [];
   broker.onChange((e) => changes.push(e));
   return { clock, broker, store, changes, e: (id) => store.get(id) };
@@ -21,7 +21,7 @@ test('a long press on an eligible light with a Dynamic Dial starts editing its b
   const { broker, changes, e } = setup();
   broker.registerDial('dial-1');
   assert.equal(broker.start({ sourceContext: 'key-1', entity: e('light.living_room') }), 'started');
-  assert.deepEqual(broker.session, { entityId: 'light.living_room', attributeId: 'light.brightness', sourceContext: 'key-1' });
+  assert.deepEqual(broker.session, { entityId: 'light.living_room', attributeId: 'light.brightness', sourceContext: 'key-1', targets: [], targetIndex: -1 });
   assert.equal(broker.isSource('key-1'), true);
   assert.equal(broker.isSource('key-2'), false);
   assert.equal(changes.at(-1).session.entityId, 'light.living_room');
@@ -48,7 +48,7 @@ test('a long press on another key switches the entity (FR-035)', () => {
   broker.registerDial('d');
   broker.start({ sourceContext: 'key-a', entity: e('light.living_room') });
   assert.equal(broker.start({ sourceContext: 'key-b', entity: e('light.desk') }), 'switched');
-  assert.deepEqual(broker.session, { entityId: 'light.desk', attributeId: 'light.brightness', sourceContext: 'key-b' });
+  assert.deepEqual(broker.session, { entityId: 'light.desk', attributeId: 'light.brightness', sourceContext: 'key-b', targets: [], targetIndex: -1 });
   assert.equal(broker.isSource('key-a'), false);
 });
 
@@ -173,4 +173,157 @@ test('a new session starts with the default edit value again (FR-023)', () => {
   broker.end('source_press');
   broker.start({ sourceContext: 'k', entity: e('light.desk') });
   assert.equal(broker.session.attributeId, 'light.brightness');
+});
+
+// --- feature 004: selected values (contracts/edit-session-targets.md §3) -------------------
+
+const T = (entityId, attributeId) => ({ entityId, attributeId });
+const hallway = T('light.hallway', 'light.brightness');
+const living = T('light.living_room', 'light.brightness');
+const desk = T('light.desk', 'light.brightness');
+const deskCt = T('light.desk', 'light.color_temp');
+const unavailable = (store, entityId) => store.applyStateChanged(entityId, { ...rawState(entityId), state: 'unavailable' });
+
+test('startTargets starts at the first usable entry and mirrors it in entityId/attributeId', () => {
+  const { broker, changes } = setup();
+  broker.registerDial('d');
+  const targets = [hallway, living, deskCt];
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets }), 'started');
+  assert.deepEqual(broker.session, { entityId: 'light.living_room', attributeId: 'light.brightness', sourceContext: 'k', targets, targetIndex: 1 });
+  assert.equal(changes.at(-1).reason, 'started');
+});
+
+test('startTargets is ineligible for an empty or unusable list, with and without dials', () => {
+  const { broker } = setup();
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets: [] }), 'ineligible');
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets: [hallway, T('switch.coffee', 'light.brightness')] }), 'ineligible');
+  broker.registerDial('d');
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets: [hallway] }), 'ineligible');
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets: undefined }), 'ineligible');
+  assert.equal(broker.session, null);
+});
+
+test('startTargets without a Dynamic Dial returns no_dial', () => {
+  const { broker } = setup();
+  assert.equal(broker.startTargets({ sourceContext: 'k', targets: [desk] }), 'no_dial');
+  assert.equal(broker.session, null);
+});
+
+test('startTargets from another key switches the session', () => {
+  const { broker, e } = setup();
+  broker.registerDial('d');
+  broker.start({ sourceContext: 'a', entity: e('light.living_room') });
+  assert.equal(broker.startTargets({ sourceContext: 'b', targets: [desk] }), 'switched');
+  assert.equal(broker.isSource('b'), true);
+});
+
+test('nextTarget walks the list in order and wraps around', () => {
+  const { broker, changes } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk, deskCt] });
+  assert.equal(broker.nextTarget(), true);
+  assert.deepEqual([broker.session.entityId, broker.session.attributeId, broker.session.targetIndex], ['light.desk', 'light.brightness', 1]);
+  assert.deepEqual(changes.at(-1), { session: broker.session, reason: 'switched_target' });
+  broker.nextTarget();
+  assert.deepEqual([broker.session.attributeId, broker.session.targetIndex], ['light.color_temp', 2]);
+  broker.nextTarget();
+  assert.deepEqual([broker.session.entityId, broker.session.targetIndex], ['light.living_room', 0]);
+});
+
+test('nextTarget re-arms the timeout (FR-013)', () => {
+  const { clock, broker } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  clock.tick(9_000);
+  broker.nextTarget();
+  clock.tick(9_000);
+  assert.notEqual(broker.session, null);
+  clock.tick(1_000);
+  assert.equal(broker.session, null);
+});
+
+test('nextTarget skips entries that became unusable', () => {
+  const { broker, store } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk, T('cover.blinds', 'cover.position')] });
+  unavailable(store, 'light.desk');
+  assert.equal(broker.nextTarget(), true);
+  assert.equal(broker.session.entityId, 'cover.blinds');
+});
+
+test('nextTarget returns false without another usable entry, and in the classic mode', () => {
+  const { broker, store, changes, e } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  unavailable(store, 'light.desk');
+  const count = changes.length;
+  assert.equal(broker.nextTarget(), false);
+  assert.equal(changes.length, count, 'no emit');
+  assert.equal(broker.session.entityId, 'light.living_room');
+  broker.start({ sourceContext: 'k', entity: e('light.desk') });
+  assert.equal(broker.nextTarget(), false);
+  broker.end('x');
+  assert.equal(broker.nextTarget(), false, 'idle');
+});
+
+test('targetUnusable moves on from the current target', () => {
+  const { broker, store, changes } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  unavailable(store, 'light.living_room');
+  broker.targetUnusable('light.living_room', 'light.brightness');
+  assert.equal(broker.session.entityId, 'light.desk');
+  assert.equal(changes.at(-1).reason, 'switched_target');
+});
+
+test('targetUnusable ends the session when no usable entry is left', () => {
+  const { broker, store, changes } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  unavailable(store, 'light.living_room');
+  unavailable(store, 'light.desk');
+  broker.targetUnusable('light.living_room');
+  assert.equal(broker.session, null);
+  assert.equal(changes.at(-1).reason, 'unavailable');
+});
+
+test('targetUnusable ignores targets that are not current', () => {
+  const { broker } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  broker.targetUnusable('light.desk', 'light.brightness');
+  broker.targetUnusable('light.living_room', 'light.color_temp');
+  assert.equal(broker.session.entityId, 'light.living_room');
+  assert.equal(broker.session.targetIndex, 0);
+});
+
+test('entityUnavailable delegates to targetUnusable when the session has targets', () => {
+  const { broker, store } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [living, desk] });
+  unavailable(store, 'light.living_room');
+  broker.entityUnavailable('light.living_room');
+  assert.equal(broker.session.entityId, 'light.desk');
+});
+
+test('a new session starts at the first usable entry again (FR-014)', () => {
+  const { broker } = setup();
+  broker.registerDial('d');
+  const targets = [living, desk, deskCt];
+  broker.startTargets({ sourceContext: 'k', targets });
+  broker.nextTarget();
+  broker.nextTarget();
+  broker.end('source_press');
+  broker.startTargets({ sourceContext: 'k', targets });
+  assert.equal(broker.session.targetIndex, 0);
+});
+
+test('switchAttribute works with exactly one target and keeps the targets (FR-011)', () => {
+  const { broker, e } = setup();
+  broker.registerDial('d');
+  broker.startTargets({ sourceContext: 'k', targets: [desk] });
+  assert.equal(broker.switchAttribute(e('light.desk')), true);
+  assert.equal(broker.session.attributeId, 'light.color_temp');
+  assert.deepEqual(broker.session.targets, [desk]);
+  assert.equal(broker.session.targetIndex, 0);
 });
