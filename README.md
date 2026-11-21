@@ -15,6 +15,15 @@ an Ulanzi Deck. Built on the official
 | **HA Sensor** | key | Shows a sensor value with unit; turns orange outside optional limits. |
 | **HA Service Call** | key | Calls any service with target entities and JSON data. |
 
+**Home Assistant icons on keys.** HA Toggle, HA Trigger and HA Sensor keys show the same
+[Material Design icon](https://pictogrammers.com/library/mdi/) that Home Assistant shows for the
+entity in its current state: a custom icon set in Home Assistant, otherwise the default icon for
+the domain, device class and state (e.g. bulb / bulb off, open / closed shutter, battery level).
+Lights that are on show the icon in their actual colour. In each key's settings you can pick a
+different icon by name (`mdi:coffee-maker`, with preview), set your own colours (on/off for HA
+Toggle), or switch the icon off to get the text layout. HA Service Call keys show an icon only if
+you enter one.
+
 The display reacts immediately to every dial detent; Home Assistant receives at most five calls
 per second per entity, and the final value always arrives. The plugin reconnects automatically
 after Home Assistant restarts. The UI is available in English and German.
@@ -38,7 +47,8 @@ welcome as [issues](https://github.com/dark-m0de/ulanzi-studio-HA-plugin/issues)
 ### Requirements
 
 - Ulanzi Studio 3.3.0 or newer on macOS or Windows
-- Home Assistant 2024.1 or newer
+- Home Assistant 2024.1 or newer (Home Assistant's own icons need 2024.2 or newer; older versions
+  use built-in icons, and the settings page shows a hint)
 
 ## Installation
 
@@ -126,6 +136,9 @@ npm run package     # builds com.ulanzi.hadeck.ulanziPlugin.zip (includes LICENS
 ## License
 
 Apache License 2.0 – see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Icons: [Material Design Icons](https://pictogrammers.com/library/mdi/) by Pictogrammers
+(`@mdi/js`, Apache License 2.0), bundled with the plugin.
 
 This project is not affiliated with, endorsed by, or sponsored by Ulanzi or the Home Assistant
 project / Open Home Foundation. "Home Assistant" and "Ulanzi" are trademarks of their respective

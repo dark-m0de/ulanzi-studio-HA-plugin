@@ -1,4 +1,5 @@
 // Shared base for action instances: settings, entity subscription, render hook, dispose.
+import { resolveKeyIcon } from '../../domain/icons/resolve.js';
 
 export class ActionBase {
   #unsubscribe = null;
@@ -47,6 +48,25 @@ export class ActionBase {
   /** Override: push the current state to the device. */
   render() {}
 
+  /** Icon names already reported as unknown by this key (debug log once per name). */
+  #skippedIcons = new Set();
+
+  /**
+   * Resolves the key icon (feature 003, data-model §4) and logs unknown icon names once at debug
+   * level, without the entity id.
+   * @param {'toggle' | 'sensor' | 'trigger' | 'service'} kind
+   */
+  resolveIcon(kind) {
+    return resolveKeyIcon(this.entity, this.settings, this.app.iconData, {
+      kind,
+      onSkipped: (name) => {
+        if (this.#skippedIcons.has(name)) return;
+        this.#skippedIcons.add(name);
+        this.app.logger.debug(`icon not found: ${name}`);
+      },
+    });
+  }
+
   dispose() {
     this.#unsubscribe?.();
     this.#unsubscribe = null;
@@ -56,5 +76,7 @@ export class ActionBase {
   bindEntity() {
     this.#unsubscribe?.();
     this.#unsubscribe = this.entityId ? this.app.store.subscribe(this.entityId, () => this.onEntityChanged()) : null;
+    // Feature 003: integration icons for this entity's platform, loaded lazily (FR-003).
+    if (this.entityId) this.app.iconLoader?.ensurePlatformsFor([this.entityId]).catch(() => {});
   }
 }

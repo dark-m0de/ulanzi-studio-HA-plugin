@@ -8,6 +8,8 @@ import {
   getStatesMessage,
   subscribeStateChangedMessage,
   callServiceMessage,
+  getIconsMessage,
+  entityRegistryDisplayMessage,
   pingMessage,
   parseMessage,
 } from './messages.js';
@@ -142,6 +144,21 @@ export class HAClient extends EventTarget {
    */
   callService(call) {
     return this.#request((id) => callServiceMessage(id, call));
+  }
+
+  /**
+   * HA icon definitions (feature 003).
+   * @param {'entity_component' | 'entity'} category
+   * @param {string[]} [integrations]
+   * @returns {Promise<any>} `{ resources }`
+   */
+  getIcons(category, integrations) {
+    return this.#request((id) => getIconsMessage(id, category, integrations));
+  }
+
+  /** @returns {Promise<any>} `{ entities: [{ ei, pl, tk? }] }` */
+  listEntityRegistryDisplay() {
+    return this.#request(entityRegistryDisplayMessage);
   }
 
   dispose() {

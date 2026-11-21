@@ -1,7 +1,7 @@
 // A scripted Home Assistant WebSocket server for integration tests
 // (contract: specs/001-ha-deck-plugin/contracts/ha-websocket.md).
 import { WebSocketServer } from 'ws';
-import { loadStates } from './fixtures/index.js';
+import { loadStates, loadIcons } from './fixtures/index.js';
 
 export async function startFakeHA({ token = 'valid-token', states = loadStates(), haVersion = '2025.1.0' } = {}) {
   /** @type {any[]} */
@@ -13,6 +13,11 @@ export async function startFakeHA({ token = 'valid-token', states = loadStates()
   /** @type {{ code: string, message: string } | null} */
   let nextCallError = null;
   let subscribeSuccess = true;
+  const icons = loadIcons();
+  let iconsSupported = true;
+  let holdIcons = false;
+  /** @type {{ socket: any, msg: any }[]} */
+  let heldIcons = [];
   let wss = null;
   let port = 0;
 
@@ -66,12 +71,39 @@ export async function startFakeHA({ token = 'valid-token', states = loadStates()
           reply(socket, { id: msg.id, type: 'result', success: true, result: { context: { id: 'ctx' } } });
         }
         break;
+      case 'frontend/get_icons':
+        if (holdIcons) heldIcons.push({ socket, msg });
+        else answerIcons(socket, msg);
+        break;
+      case 'config/entity_registry/list_for_display':
+        if (iconsSupported) reply(socket, { id: msg.id, type: 'result', success: true, result: icons.list_for_display });
+        else unknownCommand(socket, msg);
+        break;
       case 'ping':
         if (answerPings) reply(socket, { id: msg.id, type: 'pong' });
         break;
       default:
-        reply(socket, { id: msg.id, type: 'result', success: false, error: { code: 'unknown_command', message: 'Unknown command' } });
+        unknownCommand(socket, msg);
     }
+  }
+
+  function unknownCommand(socket, msg) {
+    reply(socket, { id: msg.id, type: 'result', success: false, error: { code: 'unknown_command', message: 'Unknown command' } });
+  }
+
+  /** frontend/get_icons from fixtures/icons.json; category `entity` filtered by `integration`. */
+  function answerIcons(socket, msg) {
+    if (!iconsSupported) return unknownCommand(socket, msg);
+    if (msg.category === 'entity_component') {
+      return reply(socket, { id: msg.id, type: 'result', success: true, result: icons.entity_component });
+    }
+    if (msg.category === 'entity') {
+      const wanted = Array.isArray(msg.integration) ? msg.integration : [msg.integration];
+      const all = icons.entity.resources;
+      const resources = Object.fromEntries(wanted.filter((p) => Object.hasOwn(all, p)).map((p) => [p, all[p]]));
+      return reply(socket, { id: msg.id, type: 'result', success: true, result: { resources } });
+    }
+    return reply(socket, { id: msg.id, type: 'result', success: true, result: { resources: {} } });
   }
 
   async function listen(atPort) {
@@ -132,6 +164,20 @@ export async function startFakeHA({ token = 'valid-token', states = loadStates()
     },
     setSubscribeSuccess(value) {
       subscribeSuccess = value;
+    },
+    /** false simulates HA < 2024.2: get_icons and list_for_display reply success: false. */
+    setIconsSupported(value) {
+      iconsSupported = value;
+    },
+    /** Queues frontend/get_icons requests without replying until releaseIcons(). */
+    holdIcons() {
+      holdIcons = true;
+    },
+    releaseIcons() {
+      holdIcons = false;
+      const queued = heldIcons;
+      heldIcons = [];
+      for (const { socket, msg } of queued) answerIcons(socket, msg);
     },
     /** Closes all sockets and reopens on the same port (simulates an HA restart). */
     async restart() {

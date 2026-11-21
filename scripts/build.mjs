@@ -26,7 +26,7 @@ const options = {
 };
 
 // License texts of bundled packages (MIT/Apache-2.0 require shipping them; see NOTICE).
-const BUNDLED = ['ulanzideck-api', 'ws'];
+const BUNDLED = ['ulanzideck-api', 'ws', '@mdi/js'];
 async function writeThirdPartyLicenses() {
   const parts = [];
   for (const name of BUNDLED) {

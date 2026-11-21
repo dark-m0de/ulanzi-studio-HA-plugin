@@ -1,0 +1,191 @@
+{
+  "entity_component": {
+    "resources": {
+      "switch": {
+        "_": {
+          "default": "mdi:toggle-switch-variant",
+          "state": {
+            "off": "mdi:toggle-switch-variant-off"
+          }
+        },
+        "outlet": {
+          "default": "mdi:power-plug",
+          "state": {
+            "off": "mdi:power-plug-off"
+          }
+        },
+        "switch": {
+          "default": "mdi:toggle-switch-variant",
+          "state": {
+            "off": "mdi:toggle-switch-variant-off"
+          }
+        }
+      },
+      "fan": {
+        "_": {
+          "default": "mdi:fan",
+          "state": {
+            "off": "mdi:fan-off"
+          }
+        }
+      },
+      "media_player": {
+        "_": {
+          "default": "mdi:cast",
+          "state": {
+            "off": "mdi:cast-off",
+            "paused": "mdi:cast-connected",
+            "playing": "mdi:cast-connected"
+          }
+        },
+        "speaker": {
+          "default": "mdi:speaker",
+          "state": {
+            "off": "mdi:speaker-off",
+            "paused": "mdi:speaker-pause",
+            "playing": "mdi:speaker-play"
+          }
+        },
+        "tv": {
+          "default": "mdi:television",
+          "state": {
+            "off": "mdi:television-off",
+            "paused": "mdi:television-pause",
+            "playing": "mdi:television-play"
+          }
+        }
+      },
+      "climate": {
+        "_": {
+          "default": "mdi:thermostat"
+        }
+      },
+      "input_boolean": {
+        "_": {
+          "default": "mdi:check-circle-outline",
+          "state": {
+            "off": "mdi:close-circle-outline"
+          }
+        }
+      },
+      "scene": {
+        "_": {
+          "default": "mdi:palette"
+        }
+      },
+      "script": {
+        "_": {
+          "default": "mdi:script-text",
+          "state": {
+            "on": "mdi:script-text-play"
+          }
+        }
+      },
+      "automation": {
+        "_": {
+          "default": "mdi:robot",
+          "state": {
+            "off": "mdi:robot-off",
+            "unavailable": "mdi:robot-confused"
+          }
+        }
+      },
+      "cover": {
+        "_": {
+          "default": "mdi:dock-top",
+          "state": {
+            "closed": "mdi:card",
+            "closing": "mdi:arrow-down-box",
+            "opening": "mdi:arrow-up-box"
+          }
+        },
+        "garage": {
+          "default": "mdi:garage-open",
+          "state": {
+            "closed": "mdi:garage",
+            "closing": "mdi:arrow-down-box",
+            "opening": "mdi:arrow-up-box"
+          }
+        },
+        "shutter": {
+          "default": "mdi:window-shutter-open",
+          "state": {
+            "closed": "mdi:window-shutter",
+            "closing": "mdi:arrow-down-box",
+            "opening": "mdi:arrow-up-box"
+          }
+        }
+      },
+      "light": {
+        "_": {
+          "default": "mdi:lightbulb",
+          "state": {
+            "off": "mdi:lightbulb-off"
+          },
+          "state_attributes": {
+            "effect": {
+              "default": "mdi:circle-medium"
+            }
+          }
+        }
+      },
+      "sensor": {
+        "_": {
+          "default": "mdi:eye"
+        },
+        "temperature": {
+          "default": "mdi:thermometer"
+        },
+        "humidity": {
+          "default": "mdi:water-percent"
+        },
+        "battery": {
+          "default": "mdi:battery-unknown",
+          "range": {
+            "0": "mdi:battery-alert",
+            "10": "mdi:battery-10",
+            "20": "mdi:battery-20",
+            "30": "mdi:battery-30",
+            "40": "mdi:battery-40",
+            "50": "mdi:battery-50",
+            "60": "mdi:battery-60",
+            "70": "mdi:battery-70",
+            "80": "mdi:battery-80",
+            "90": "mdi:battery-90",
+            "100": "mdi:battery"
+          }
+        }
+      }
+    }
+  },
+  "entity": {
+    "resources": {
+      "demo_platform": {
+        "sensor": {
+          "outdoor": {
+            "default": "mdi:sun-thermometer"
+          }
+        }
+      }
+    }
+  },
+  "list_for_display": {
+    "entity_categories": {
+      "0": "config",
+      "1": "diagnostic"
+    },
+    "entities": [
+      {
+        "ei": "sensor.outdoor_temperature",
+        "pl": "demo_platform",
+        "tk": "outdoor",
+        "lb": []
+      },
+      {
+        "ei": "light.desk",
+        "pl": "demo_platform",
+        "lb": []
+      }
+    ]
+  }
+}

@@ -34,6 +34,13 @@ ws
   Source: https://github.com/websockets/ws
   Bundled into dist/app.js.
 
+Material Design Icons (@mdi/js)
+  Copyright Pictogrammers (Austin Andrews and contributors)
+  License: icons under the Apache License, Version 2.0; code under MIT
+  (Pictogrammers Free License)
+  Source: https://github.com/Templarian/MaterialDesign-JS
+  Bundled into dist/app.js.
+
 When adding a component, list it here with its name, copyright holder,
 license and source URL, and carry over the contents of its own NOTICE file
 if it has one.

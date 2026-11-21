@@ -51,3 +51,37 @@ textarea.uspi-item-value {
   resize: vertical;
   font-family: ui-monospace, Menlo, Consolas, monospace;
 }
+
+/* Icon section (feature 003). */
+.hadeck-icon-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 8px;
+  flex: none;
+  color: var(--uspi-color, #fff);
+}
+
+.hadeck-color-picker {
+  width: 48px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--uspi-bordercolor);
+  border-radius: var(--uspi-borderradius);
+  background: none;
+  cursor: pointer;
+}
+
+.hadeck-color-picker.hadeck-color-default {
+  opacity: 0.45;
+}
+
+.hadeck-color-reset {
+  margin-left: 8px;
+}
+
+.hadeck-icon-notfound {
+  margin: 0 0 8px;
+}

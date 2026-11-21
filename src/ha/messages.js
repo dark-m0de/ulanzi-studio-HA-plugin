@@ -42,6 +42,21 @@ export const subscribeStateChangedMessage = (id) => ({ id, type: 'subscribe_even
 export const pingMessage = (id) => ({ id, type: 'ping' });
 
 /**
+ * Icon definitions (feature 003, contracts/ha-icon-messages.md).
+ * @param {number} id
+ * @param {'entity_component' | 'entity'} category
+ * @param {string[]} [integrations] only for category `entity`
+ */
+export function getIconsMessage(id, category, integrations) {
+  const msg = { id, type: 'frontend/get_icons', category };
+  if (Array.isArray(integrations) && integrations.length) msg.integration = integrations;
+  return msg;
+}
+
+/** Lightweight entity registry (translation keys and platforms) used for icons. */
+export const entityRegistryDisplayMessage = (id) => ({ id, type: 'config/entity_registry/list_for_display' });
+
+/**
  * @param {number} id
  * @param {ServiceCall} call
  */

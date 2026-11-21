@@ -13,3 +13,10 @@ export function rawState(entityId) {
   if (!found) throw new Error(`No fixture for ${entityId}`);
   return found;
 }
+
+const iconsRaw = readFileSync(new URL('./icons.json', import.meta.url), 'utf8');
+
+/** Returns a fresh deep copy of the HA icon fixtures (get_icons / list_for_display results). */
+export function loadIcons() {
+  return JSON.parse(iconsRaw);
+}

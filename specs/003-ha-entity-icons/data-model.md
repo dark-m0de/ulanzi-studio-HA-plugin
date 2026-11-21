@@ -79,7 +79,7 @@ Order (spec FR-001, research R-04). The first step that yields a known `path` wi
 2. `entity.attributes.icon`
 3. Platform definition via `registry[entityId]` → `platforms[platform][domain][translationKey]`
 4. Component definition `components[domain][attributes.device_class] ?? components[domain]._`
-5. Fallback table `fallbackIcon(domain, deviceClass, isOn)` (`src/domain/icons/fallback-icons.js`)
+5. Fallback table `fallbackIcon(domain, deviceClass, state)` (`src/domain/icons/fallback-icons.js`)
 6. `null` → text layout
 
 For Service keys (`kind: 'service'`) only step 1 applies.

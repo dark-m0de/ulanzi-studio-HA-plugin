@@ -15,6 +15,7 @@ export class ServiceAction extends KeyAction {
       connected: this.connected,
       valid: this.call !== null,
       confirming: this.confirming,
+      icon: this.resolveIcon('service'),
     });
   }
 

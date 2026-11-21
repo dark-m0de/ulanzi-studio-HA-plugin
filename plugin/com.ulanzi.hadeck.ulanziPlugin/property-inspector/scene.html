@@ -23,6 +23,7 @@
         <input class="uspi-item-value" type="text" name="label" maxlength="24"
                data-localize="pi.label.placeholder" placeholder="pi.label.placeholder">
       </div>
+      <div id="hadeck-icon-section"></div>
     </form>
   </div>
 
@@ -34,6 +35,8 @@
   <script src="shared.js"></script>
   <script>
     HADeck.mountConnectionBlock('#hadeck-connection');
+    // Feature 003: icon section (before bindForm so the fields exist).
+    HADeck.mountIconSection('#hadeck-icon-section', { showToggle: true, entityInput: document.getElementById('entityId') });
     HADeck.bindForm('#property-inspector');
     HADeck.mountEntityPicker(document.getElementById('entityId'), { domains: ['scene', 'script', 'automation'] });
     $UD.connect(HADeck.ACTION_PREFIX + 'scene');

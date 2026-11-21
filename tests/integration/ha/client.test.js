@@ -248,3 +248,33 @@ test('testConnection maps failures to message keys', async () => {
   clock.tick(10_000);
   assert.deepEqual(await pending, { ok: false, error: 'error.timeout' });
 });
+
+// --- Feature 003: icon requests (contracts/ha-icon-messages.md) ---------------------------------
+
+test('getIcons and listEntityRegistryDisplay resolve with the HA results', async () => {
+  const c = newClient();
+  c.configure(server.url, TOKEN);
+  await waitFor(() => c.status === 'connected', { message: 'connected' });
+  const components = await c.getIcons('entity_component');
+  assert.equal(components.resources.light._.default, 'mdi:lightbulb');
+  const platforms = await c.getIcons('entity', ['demo_platform', 'missing']);
+  assert.deepEqual(Object.keys(platforms.resources), ['demo_platform']);
+  assert.deepEqual(server.messages('frontend/get_icons').at(-1).integration, ['demo_platform', 'missing']);
+  const registry = await c.listEntityRegistryDisplay();
+  assert.equal(registry.entities[0].ei, 'sensor.outdoor_temperature');
+});
+
+test('icon requests reject with error.service on HA without the icon API', async () => {
+  server.setIconsSupported(false);
+  const c = newClient();
+  c.configure(server.url, TOKEN);
+  await waitFor(() => c.status === 'connected', { message: 'connected' });
+  await assert.rejects(c.getIcons('entity_component'), (err) => err.key === 'error.service' && err.haCode === 'unknown_command');
+  await assert.rejects(c.listEntityRegistryDisplay(), (err) => err.key === 'error.service');
+});
+
+test('icon requests reject with error.disconnected while not connected', async () => {
+  const c = newClient();
+  await assert.rejects(c.getIcons('entity_component'), (err) => err.key === 'error.disconnected');
+  await assert.rejects(c.listEntityRegistryDisplay(), (err) => err.key === 'error.disconnected');
+});

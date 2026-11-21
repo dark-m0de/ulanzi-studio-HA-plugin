@@ -128,7 +128,7 @@ src/ha/
 
 src/domain/icons/            # NEW
 ├── mdi-set.js               # normaliseIconName(), iconPath(name) over @mdi/js
-├── fallback-icons.js        # fallbackIcon(domain, deviceClass, isOn)
+├── fallback-icons.js        # fallbackIcon(domain, deviceClass, state)
 ├── icon-data.js             # IconData store (components, platforms, registry, subscribe)
 ├── resolve.js               # iconFromDefinition(), resolveKeyIcon()
 └── icon-color.js            # iconColor(), ensureContrast(), parseHexColor()

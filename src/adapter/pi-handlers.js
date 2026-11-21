@@ -4,6 +4,7 @@ import { normalizeBaseUrl } from '../ha/messages.js';
 import { PiError } from './pi-bridge.js';
 import { supportedAttributes, editAttributeFor } from '../domain/attributes/index.js';
 import { supportedPressActions } from '../domain/dial-press.js';
+import { resolveKeyIcon } from '../domain/icons/resolve.js';
 
 const tokenOrNull = (value) => (typeof value === 'string' && value.trim() ? value.trim() : null);
 
@@ -16,6 +17,8 @@ export function registerPiHandlers(app) {
     status: client.status,
     hasToken: Boolean(app.globalSettings.haToken),
     haUrl: app.globalSettings.haUrl ?? '',
+    // Feature 003: false makes the degraded icon mode visible in the PI (Principle IV).
+    iconsAvailable: app.iconData.available,
   });
 
   piBridge.register('connection.status', () => statusPayload());
@@ -69,5 +72,24 @@ export function registerPiHandlers(app) {
     return { attributes, longPressEligible: editAttributeFor(entity) !== null, pressActions };
   });
 
+  // Feature 003: icon preview for the icon field (contracts/key-icon-settings.md §3).
+  piBridge.register('icon.preview', ({ name, entityId } = {}) => {
+    const notFound = { found: false, name: null, path: null, source: null };
+    let icon = null;
+    if (typeof name === 'string' && name.trim()) {
+      icon = resolveKeyIcon(null, { icon: name }, app.iconData, { kind: 'service' });
+    } else if (typeof entityId === 'string' && client.status === 'connected') {
+      const entity = app.store.get(entityId.trim());
+      icon = entity ? resolveKeyIcon(entity, {}, app.iconData, { kind: 'toggle' }) : null;
+    }
+    return icon ? { found: true, name: icon.name, path: icon.path, source: icon.source } : notFound;
+  });
+
   app.onStatus(() => piBridge.push('connection.changed', statusPayload()));
+  let lastIconsAvailable = app.iconData.available;
+  app.iconData.subscribe(() => {
+    if (app.iconData.available === lastIconsAvailable) return;
+    lastIconsAvailable = app.iconData.available;
+    piBridge.push('connection.changed', statusPayload());
+  });
 }
