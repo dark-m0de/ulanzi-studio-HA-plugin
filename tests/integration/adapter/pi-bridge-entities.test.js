@@ -40,3 +40,23 @@ test('returns an empty list when disconnected', async () => {
   h = await createHarness({ connect: false });
   assert.deepEqual((await h.piRequest('entities.list', { limit: 10 })).payload, { entities: [] });
 });
+
+// Feature 004: the selected-values search only offers entities with a controllable value
+// (contracts/toggle-selected-values-settings.md §4a).
+test('controllable: true keeps only entities with at least one controllable value', async () => {
+  h = await createHarness();
+  const found = ids(await h.piRequest('entities.list', { controllable: true, limit: 100 }));
+  for (const id of ['light.living_room', 'light.desk', 'cover.blinds', 'media_player.living_room', 'climate.office', 'fan.bedroom', 'input_number.volume_target']) {
+    assert.ok(found.includes(id), id);
+  }
+  for (const id of ['light.hallway', 'cover.garage', 'switch.coffee', 'sensor.outdoor_temperature', 'scene.evening']) {
+    assert.ok(!found.includes(id), id);
+  }
+});
+
+test('controllable combines with domains and query; without it the result is unchanged', async () => {
+  h = await createHarness();
+  assert.deepEqual(ids(await h.piRequest('entities.list', { controllable: true, domains: ['light'], limit: 100 })).sort(), ['light.desk', 'light.living_room']);
+  assert.deepEqual(ids(await h.piRequest('entities.list', { controllable: true, query: 'living', limit: 100 })).sort(), ['light.living_room', 'media_player.living_room']);
+  assert.equal(ids(await h.piRequest('entities.list', { controllable: false, limit: 100 })).length, 15);
+});

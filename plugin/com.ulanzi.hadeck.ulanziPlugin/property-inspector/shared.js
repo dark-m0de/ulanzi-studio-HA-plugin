@@ -172,7 +172,9 @@
   /**
    * Turns a text input into a searchable entity picker backed by `entities.list`.
    * @param {HTMLInputElement} input the input holding the entity id (part of the settings form)
-   * @param {{ domains?: string[] }} [options]
+   * @param {{ domains?: string[], onChoose?: (entityId: string) => void, clearOnChoose?: boolean, controllable?: boolean }} [options]
+   *   `onChoose` replaces writing the id into the input; `clearOnChoose` empties the input
+   *   afterwards; `controllable` only lists entities with a dial-controllable value (feature 004).
    */
   function mountEntityPicker(input, options) {
     const opts = options || {};
@@ -183,14 +185,21 @@
     let seq = 0;
 
     function choose(entityId) {
-      input.value = entityId;
       list.classList.add('hidden');
+      if (opts.onChoose) {
+        if (opts.clearOnChoose) input.value = '';
+        opts.onChoose(entityId);
+        return;
+      }
+      input.value = opts.clearOnChoose ? '' : entityId;
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     function search() {
       const mySeq = ++seq;
-      request('entities.list', { domains: opts.domains || null, query: input.value.trim() || null, limit: 30 })
+      const params = { domains: opts.domains || null, query: input.value.trim() || null, limit: 30 };
+      if (opts.controllable) params.controllable = true;
+      request('entities.list', params)
         .then((res) => {
           if (mySeq !== seq) return;
           list.innerHTML = '';

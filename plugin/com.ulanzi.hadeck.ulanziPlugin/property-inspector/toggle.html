@@ -41,12 +41,28 @@
         <div class="uspi-item-label" data-localize>pi.longPress</div>
         <select class="uspi-item-value" name="longPress" id="longPress">
           <option value="edit" data-localize="pi.longPress.edit">pi.longPress.edit</option>
+          <option value="edit_values" data-localize="pi.longPress.editValues">pi.longPress.editValues</option>
           <option value="disabled" data-localize="pi.longPress.disabled">pi.longPress.disabled</option>
           <option value="entity" data-localize="pi.longPress.entity">pi.longPress.entity</option>
           <option value="service" data-localize="pi.longPress.service">pi.longPress.service</option>
         </select>
       </div>
       <div class="hadeck-hint" data-mode="edit" data-localize>pi.longPress.editHint</div>
+      <div class="hadeck-hint" data-mode="edit_values" data-localize>pi.longPress.editValues.hint</div>
+      <div class="uspi-item" data-mode="edit_values">
+        <div class="uspi-item-label" data-localize>pi.longPress.editValues.list</div>
+        <div class="hadeck-chips" id="editValuesChips"></div>
+      </div>
+      <div class="uspi-item" data-mode="edit_values">
+        <div class="uspi-item-label" data-localize>pi.longPress.editValues.add</div>
+        <input class="uspi-item-value" type="text" id="editValuesSearch" spellcheck="false"
+               data-localize="pi.entity.placeholder" placeholder="pi.entity.placeholder">
+      </div>
+      <div class="uspi-item hidden" id="editValuesAddRow">
+        <div class="uspi-item-label" id="editValuesEntityName"></div>
+        <div class="hadeck-value-buttons" id="editValuesButtons"></div>
+      </div>
+      <input type="hidden" name="editValues" id="editValues">
       <div class="uspi-item" data-mode="entity">
         <div class="uspi-item-label" data-localize>pi.longPress.entityId</div>
         <input class="uspi-item-value" type="text" name="longPressEntityId" id="longPressEntityId" spellcheck="false"
@@ -107,6 +123,118 @@
       dataError.classList.toggle('hidden', ok || modeSelect.value !== 'service');
     }
 
+    // --- Selected values for "Dynamic Dial for selected values" (feature 004, contract §3) ---
+    // One call site, so the list UI lives here and not in shared.js (constitution VI).
+    const valuesInput = document.getElementById('editValues');
+    const chipsEl = document.getElementById('editValuesChips');
+    const searchInput = document.getElementById('editValuesSearch');
+    const addRow = document.getElementById('editValuesAddRow');
+    const addName = document.getElementById('editValuesEntityName');
+    const buttonsEl = document.getElementById('editValuesButtons');
+    const names = new Map(); // entityId → friendly name (null = unknown)
+    let chosen = null; // { entityId, friendlyName, attributes }
+
+    // Same normalisation as parseSelectedValues in src/domain/selected-values.js.
+    function readList() {
+      let parsed = [];
+      try {
+        parsed = valuesInput.value ? JSON.parse(valuesInput.value) : [];
+      } catch (e) {
+        parsed = [];
+      }
+      const seen = new Set();
+      return (Array.isArray(parsed) ? parsed : []).filter((v) => {
+        if (!v || typeof v.entityId !== 'string' || !v.entityId.trim() || typeof v.attributeId !== 'string') return false;
+        v.entityId = v.entityId.trim();
+        const key = v.entityId + '\n' + v.attributeId;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).map((v) => ({ entityId: v.entityId, attributeId: v.attributeId }));
+    }
+
+    function writeList(list) {
+      valuesInput.value = list.length ? JSON.stringify(list) : '';
+      valuesInput.dispatchEvent(new Event('change', { bubbles: true }));
+      renderChips();
+      renderButtons();
+    }
+
+    function loadName(entityId) {
+      if (names.has(entityId)) return;
+      names.set(entityId, null);
+      HADeck.request('entity.capabilities', { entityId })
+        .then((caps) => {
+          names.set(entityId, (caps && caps.friendlyName) || null);
+          renderChips();
+        })
+        .catch(() => {});
+    }
+
+    function renderChips() {
+      chipsEl.textContent = '';
+      readList().forEach((v, index) => {
+        loadName(v.entityId);
+        const chip = document.createElement('span');
+        chip.className = 'hadeck-chip';
+        const label = document.createElement('span');
+        label.textContent = (names.get(v.entityId) || v.entityId) + ' · ' + HADeck.t('pi.attribute.' + v.attributeId);
+        label.title = v.entityId;
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = '✕';
+        remove.title = HADeck.t('pi.longPress.editValues.remove');
+        remove.setAttribute('aria-label', remove.title);
+        remove.addEventListener('click', () => {
+          const list = readList();
+          list.splice(index, 1);
+          writeList(list);
+        });
+        chip.append(label, remove);
+        chipsEl.appendChild(chip);
+      });
+    }
+
+    function renderButtons() {
+      buttonsEl.textContent = '';
+      if (!chosen) {
+        addRow.classList.add('hidden');
+        return;
+      }
+      addRow.classList.toggle('hidden', modeSelect.value !== 'edit_values');
+      addName.textContent = chosen.friendlyName || chosen.entityId;
+      const list = readList();
+      const open = chosen.attributes.filter((a) => !list.some((v) => v.entityId === chosen.entityId && v.attributeId === a.id));
+      if (!chosen.attributes.length) {
+        const none = document.createElement('span');
+        none.className = 'hadeck-hint';
+        none.textContent = HADeck.t('pi.attribute.none');
+        buttonsEl.appendChild(none);
+      }
+      open.forEach((a) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = '+ ' + HADeck.t('pi.attribute.' + a.id);
+        button.addEventListener('click', () => writeList(readList().concat([{ entityId: chosen.entityId, attributeId: a.id }])));
+        buttonsEl.appendChild(button);
+      });
+    }
+
+    function chooseEntity(entityId) {
+      HADeck.request('entity.capabilities', { entityId })
+        .then((caps) => {
+          chosen = { entityId, friendlyName: caps && caps.friendlyName, attributes: (caps && caps.attributes) || [] };
+          if (caps && caps.friendlyName) names.set(entityId, caps.friendlyName);
+          renderButtons();
+        })
+        .catch(() => {});
+    }
+
+    document.getElementById('property-inspector').addEventListener('hadeck:load', () => {
+      renderChips();
+      renderButtons();
+    });
+
     HADeck.mountConnectionBlock('#hadeck-connection');
     // Feature 003: icon, on/off colours, "Show icon" (before bindForm so the fields exist).
     HADeck.mountIconSection('#hadeck-icon-section', { showToggle: true, offColor: true, entityInput: document.getElementById('entityId') });
@@ -120,6 +248,7 @@
     modeSelect.addEventListener('change', () => {
       showMode();
       validateData();
+      renderButtons();
     });
     dataInput.addEventListener('input', validateData);
     showMode();
@@ -127,6 +256,13 @@
     const toggleDomains = ['light', 'switch', 'fan', 'cover', 'media_player', 'climate', 'input_boolean'];
     HADeck.mountEntityPicker(document.getElementById('entityId'), { domains: toggleDomains });
     HADeck.mountEntityPicker(document.getElementById('longPressEntityId'), { domains: toggleDomains });
+    // Every domain of the attribute registry; only entities with a controllable value (FR-004).
+    HADeck.mountEntityPicker(searchInput, {
+      domains: ['light', 'media_player', 'climate', 'cover', 'fan', 'input_number', 'number'],
+      controllable: true,
+      clearOnChoose: true,
+      onChoose: chooseEntity,
+    });
     $UD.connect(HADeck.ACTION_PREFIX + 'toggle');
   </script>
 </body>

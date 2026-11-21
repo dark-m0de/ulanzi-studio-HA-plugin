@@ -43,7 +43,7 @@ export function registerPiHandlers(app) {
     return { saved: true };
   });
 
-  piBridge.register('entities.list', ({ domains, query, limit } = {}) => {
+  piBridge.register('entities.list', ({ domains, query, limit, controllable } = {}) => {
     if (client.status !== 'connected') return { entities: [] };
     const domainSet = Array.isArray(domains) && domains.length ? new Set(domains) : null;
     const q = typeof query === 'string' && query.trim() ? query.trim().toLowerCase() : null;
@@ -52,6 +52,8 @@ export function registerPiHandlers(app) {
       .all()
       .filter((e) => !domainSet || domainSet.has(e.domain))
       .filter((e) => !q || e.entityId.toLowerCase().includes(q) || e.friendlyName.toLowerCase().includes(q))
+      // Feature 004: only entities the dial can control (selected-values search).
+      .filter((e) => controllable !== true || supportedAttributes(e).length > 0)
       .sort((a, b) => a.friendlyName.localeCompare(b.friendlyName) || a.entityId.localeCompare(b.entityId))
       .slice(0, max)
       .map(({ entityId, friendlyName, domain, state }) => ({ entityId, friendlyName, domain, state }));
@@ -60,7 +62,7 @@ export function registerPiHandlers(app) {
 
   piBridge.register('entity.capabilities', ({ entityId } = {}) => {
     const entity = typeof entityId === 'string' ? app.store.get(entityId) : null;
-    if (!entity) return { attributes: [], longPressEligible: false, pressActions: {} };
+    if (!entity) return { friendlyName: null, attributes: [], longPressEligible: false, pressActions: {} };
     const attributes = supportedAttributes(entity).map((a) => {
       const { min, max } = a.bounds(entity);
       const { fine, coarse } = a.defaultSteps(entity);
@@ -69,7 +71,8 @@ export function registerPiHandlers(app) {
     const pressActions = Object.fromEntries(
       attributes.map((a) => [a.id, supportedPressActions(entity, { kind: 'fixed', attributeId: a.id })]),
     );
-    return { attributes, longPressEligible: editAttributeFor(entity) !== null, pressActions };
+    // friendlyName: names in the selected-values list of the Toggle PI (feature 004).
+    return { friendlyName: entity.friendlyName, attributes, longPressEligible: editAttributeFor(entity) !== null, pressActions };
   });
 
   // Feature 003: icon preview for the icon field (contracts/key-icon-settings.md §3).

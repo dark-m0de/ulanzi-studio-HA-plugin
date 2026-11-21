@@ -1,7 +1,9 @@
 // HA Dynamic Dial (feature 001 US4): follows the entity put into edit mode by a long-pressed HA
 // Toggle key. All Dynamic Dials share the session's EntityControl, so they and the source key stay
 // in sync. Press action: end editing (default), toggle, switch value or none (feature 002).
+// Feature 004: with two or more selected values on the key, a press jumps to the next value.
 import { DialAction } from './dial.js';
+import { targetUsable } from '../../domain/selected-values.js';
 
 export class DynamicDialAction extends DialAction {
   #unsubscribeSession = null;
@@ -48,6 +50,17 @@ export class DynamicDialAction extends DialAction {
     return 'dynamic';
   }
 
+  /** Two or more selected values: presses jump between them (feature 004, FR-010). */
+  get jumpsBetweenValues() {
+    return (this.session?.targets.length ?? 0) >= 2;
+  }
+
+  /** With several selected values the value name is always shown (FR-012). */
+  get valueCaption() {
+    if (this.jumpsBetweenValues && this.attributeId) return this.app.t(`attr.short.${this.attributeId}`);
+    return super.valueCaption;
+  }
+
   onSettings(settings) {
     this.app.editSession.updateDial(this.context, { timeoutS: settings?.editTimeoutS });
     super.onSettings(settings);
@@ -69,7 +82,21 @@ export class DynamicDialAction extends DialAction {
   /** Idle dials ignore presses (FR-013). */
   handlePress() {
     if (!this.session) return undefined;
+    if (this.jumpsBetweenValues) {
+      if (!this.app.editSession.nextTarget()) this.app.ud.toast(this.app.t('hint.noOtherValue'));
+      return undefined;
+    }
     return super.handlePress();
+  }
+
+  /** A lost selected value moves the session on, or ends it (feature 004, FR-015). */
+  onEntityChanged() {
+    const session = this.session;
+    if (session?.targets.length && !targetUsable({ entityId: session.entityId, attributeId: session.attributeId }, this.entity)) {
+      this.app.editSession.targetUnusable(session.entityId, session.attributeId);
+      return;
+    }
+    super.onEntityChanged();
   }
 
   /** Switches the edited value for the whole session; all Dynamic Dials and the key follow (FR-022). */
