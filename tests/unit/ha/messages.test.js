@@ -9,6 +9,8 @@ import {
   callServiceMessage,
   pingMessage,
   parseMessage,
+  getIconsMessage,
+  entityRegistryDisplayMessage,
 } from '../../../src/ha/messages.js';
 
 test('normalizeBaseUrl strips whitespace and trailing slashes and keeps base paths', () => {
@@ -55,4 +57,11 @@ test('parseMessage parses JSON objects and returns null for garbage', () => {
   assert.deepEqual(parseMessage(Buffer.from('{"type":"auth_ok"}')), { type: 'auth_ok' });
   assert.equal(parseMessage('not json'), null);
   assert.equal(parseMessage('42'), null);
+});
+
+test('icon message builders (feature 003, contracts/ha-icon-messages.md)', () => {
+  assert.deepEqual(getIconsMessage(5, 'entity_component'), { id: 5, type: 'frontend/get_icons', category: 'entity_component' });
+  assert.deepEqual(getIconsMessage(6, 'entity', ['hue']), { id: 6, type: 'frontend/get_icons', category: 'entity', integration: ['hue'] });
+  assert.deepEqual(getIconsMessage(8, 'entity', []), { id: 8, type: 'frontend/get_icons', category: 'entity' });
+  assert.deepEqual(entityRegistryDisplayMessage(7), { id: 7, type: 'config/entity_registry/list_for_display' });
 });

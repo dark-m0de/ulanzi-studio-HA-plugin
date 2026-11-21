@@ -4,7 +4,7 @@ import { sensorModel } from '../../domain/render/key-model.js';
 
 export class SensorAction extends KeyAction {
   model() {
-    return sensorModel(this.entity, this.settings, { t: this.app.t, connected: this.connected });
+    return sensorModel(this.entity, this.settings, { t: this.app.t, connected: this.connected, icon: this.resolveIcon('sensor') });
   }
 }
 

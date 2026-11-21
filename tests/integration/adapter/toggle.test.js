@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import { createHarness } from '../../support/app-harness.js';
 import { rawState } from '../../support/fixtures/index.js';
 import { waitFor, settle } from '../../support/wait.js';
+import { mdiLightbulb, mdiToggleSwitchVariant, mdiToggleSwitchVariantOff } from '@mdi/js';
+
+// Feature 003: toggle keys show the HA icon by default; on/off is visible through the icon.
+const isOn = (svg) => svg.includes(`d="${mdiToggleSwitchVariant}"`);
+const isOff = (svg) => svg.includes(`d="${mdiToggleSwitchVariantOff}"`);
 
 let h;
 afterEach(async () => {
@@ -30,7 +35,7 @@ test('onAdd renders the current state of the entity', async () => {
   h = await createHarness();
   const ctx = addToggle('light.living_room');
   const svg = lastIcon(h.ud, ctx);
-  assert.match(svg, />On</);
+  assert.ok(svg.includes(`d="${mdiLightbulb}"`), 'HA light icon (feature 003)');
   assert.match(svg, />Living Room</);
   assert.match(svg, />40%</);
   assert.equal(h.ud.lastCall('setBaseDataIcon', ctx).args[2], '');
@@ -62,9 +67,9 @@ test('a switch with longPress: edit falls back to toggling (Story 4 scenario 5)'
 test('state_changed re-renders the key', async () => {
   h = await createHarness();
   const ctx = addToggle('switch.coffee');
-  assert.match(lastIcon(h.ud, ctx), />Off</);
+  assert.ok(isOff(lastIcon(h.ud, ctx)));
   h.server.emitStateChanged('switch.coffee', { ...rawState('switch.coffee'), state: 'on' });
-  await waitFor(() => />On</.test(lastIcon(h.ud, ctx)), { message: 'icon shows On' });
+  await waitFor(() => isOn(lastIcon(h.ud, ctx)), { message: 'icon shows On' });
 });
 
 test('a failed call shows an alert and logs a warning without entity ids (FR-040)', async () => {
@@ -96,7 +101,7 @@ test('two keys bound to the same entity both update', async () => {
   const a = addToggle('switch.coffee', '0_0');
   const b = addToggle('switch.coffee', '0_1');
   h.server.emitStateChanged('switch.coffee', { ...rawState('switch.coffee'), state: 'on' });
-  await waitFor(() => />On</.test(lastIcon(h.ud, a)) && />On</.test(lastIcon(h.ud, b)), { message: 'both keys on' });
+  await waitFor(() => isOn(lastIcon(h.ud, a)) && isOn(lastIcon(h.ud, b)), { message: 'both keys on' });
 });
 
 test('keys render the disconnected style while HA is unreachable and recover afterwards', async () => {
@@ -105,7 +110,7 @@ test('keys render the disconnected style while HA is unreachable and recover aft
   await h.server.restart();
   await waitFor(() => />Offline</.test(lastIcon(h.ud, ctx)), { message: 'offline icon' });
   h.clock.tick(1_000);
-  await waitFor(() => />Off</.test(lastIcon(h.ud, ctx)) && !/>Offline</.test(lastIcon(h.ud, ctx)), { message: 'recovered icon' });
+  await waitFor(() => isOff(lastIcon(h.ud, ctx)) && !/>Offline</.test(lastIcon(h.ud, ctx)), { message: 'recovered icon' });
 });
 
 test('changed settings rebind the key to another entity', async () => {
@@ -193,4 +198,23 @@ test('a custom longPressMs is respected', async () => {
   h.ud.emitAction('keyup', 'toggle', {});
   await waitFor(() => h.server.messages('call_service').length === 1, { message: 'short press at 1000 ms' });
   assert.equal(h.ud.callsOf('toast').length, 0);
+});
+
+// --- Feature 003, US2: icon settings apply immediately (T035) -----------------------------------
+
+import { mdiCoffeeMaker } from '@mdi/js';
+
+test('icon override, colours and show icon apply on a settings change without reconnect', async () => {
+  h = await createHarness();
+  const ctx = addToggle('switch.coffee');
+  const connects = h.server.messages('auth').length;
+  h.ud.emitAction('didReceiveSettings', 'toggle', { settings: { entityId: 'switch.coffee', icon: 'mdi:coffee-maker', offColor: '#00ff00' } });
+  let svg = lastIcon(h.ud, ctx);
+  assert.ok(svg.includes(`d="${mdiCoffeeMaker}"`), 'override icon');
+  assert.match(svg, /fill="#00ff00"/);
+  h.ud.emitAction('didReceiveSettings', 'toggle', { settings: { entityId: 'switch.coffee', offText: 'AUS', showIcon: false } });
+  svg = lastIcon(h.ud, ctx);
+  assert.doesNotMatch(svg, /<path/);
+  assert.match(svg, />AUS</);
+  assert.equal(h.server.messages('auth').length, connects, 'no reconnect');
 });

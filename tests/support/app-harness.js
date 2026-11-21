@@ -29,9 +29,9 @@ const en = {
 };
 
 /**
- * @param {{ actionTypes?: object, connect?: boolean, language?: string }} [options]
+ * @param {{ actionTypes?: object, connect?: boolean, language?: string, debug?: boolean }} [options]
  */
-export async function createHarness({ actionTypes = ACTION_TYPES, connect = true, language = 'en' } = {}) {
+export async function createHarness({ actionTypes = ACTION_TYPES, connect = true, language = 'en', debug = false } = {}) {
   const server = await startFakeHA({ token: TOKEN });
   const ud = new FakeUD({ language });
   const clock = createManualClock();
@@ -42,6 +42,7 @@ export async function createHarness({ actionTypes = ACTION_TYPES, connect = true
     locales: { en, de_DE: {} },
     actionTypes,
     consoleTarget: null,
+    debug,
     setup: registerPiHandlers,
   });
   const harness = {

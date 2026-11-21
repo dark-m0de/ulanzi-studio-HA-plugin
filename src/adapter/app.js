@@ -7,6 +7,8 @@ import { EditSessionBroker } from '../domain/edit-session.js';
 import { createI18n } from '../domain/i18n.js';
 import { createLogger, installConsoleRedaction } from './logger.js';
 import { createPiBridge } from './pi-bridge.js';
+import { IconData } from '../domain/icons/icon-data.js';
+import { createIconLoader } from './icon-loader.js';
 
 export const PLUGIN_UUID = 'com.ulanzi.ulanzistudio.hadeck';
 
@@ -57,6 +59,9 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
   });
   // Long-press edit mode: at most one session at a time (data-model §6).
   const editSession = new EditSessionBroker({ clock });
+  // HA icon definitions for keys (feature 003); reloaded on every connection.
+  const iconData = new IconData();
+  const iconLoader = createIconLoader({ client, iconData, logger });
   // Edit-mode transitions with their reason (no entity IDs) help diagnose device reports.
   editSession.onChange(({ session, reason }) => {
     logger.info(session ? `edit mode ${reason === 'switched_value' ? 'switched value' : reason}` : `edit mode ended (${reason})`);
@@ -76,6 +81,8 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
     registry,
     controls,
     editSession,
+    iconData,
+    iconLoader,
     clock,
     createSocket,
     t: i18n.t,
@@ -189,7 +196,12 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
 
   // --- HA client events ------------------------------------------------------------------
 
-  client.addEventListener('states_loaded', (e) => store.load(e.detail.states));
+  client.addEventListener('states_loaded', (e) => {
+    store.load(e.detail.states);
+    iconLoader.load();
+    const bound = [...registry.values()].map(({ instance }) => instance?.entityId).filter((id) => typeof id === 'string' && id);
+    iconLoader.ensurePlatformsFor(bound).catch(() => {});
+  });
   client.addEventListener('state_changed', (e) => store.applyStateChanged(e.detail.entityId, e.detail.newState));
   // One toast per authentication failure (FR-005); re-armed once the connection works again
   // or new credentials are tried.
@@ -200,6 +212,7 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
     if (status !== 'connected') {
       controls.cancelPending();
       editSession.connectionLost();
+      iconLoader.clear();
     }
     if (status === 'auth_failed' && !authToastShown) {
       authToastShown = true;
@@ -215,6 +228,12 @@ export function createApp({ ud, createSocket, clock = defaultClock, locales, lan
       }
     }
     for (const { instance } of registry.values()) safeCall(instance, 'onConnectionStatus', status);
+  });
+
+  // Key actions re-render when HA icon data arrives or changes (feature 003, research R-09).
+  const KEY_TYPES = new Set(['toggle', 'scene', 'sensor', 'service']);
+  iconData.subscribe(() => {
+    for (const { type, instance } of registry.values()) if (KEY_TYPES.has(type)) safeCall(instance, 'render');
   });
 
   setup?.(app);

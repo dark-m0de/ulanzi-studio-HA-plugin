@@ -37,6 +37,17 @@ test('src/domain does not import src/ha either (pure logic)', () => {
   assert.deepEqual(violations, []);
 });
 
+test('src/domain/icons imports only domain modules and the @mdi/js icon data (feature 003)', () => {
+  const violations = [];
+  for (const file of jsFiles(join(root, 'src/domain/icons'))) {
+    for (const spec of imports(file)) {
+      const ok = spec === '@mdi/js' || ((spec.startsWith('./') || spec.startsWith('../')) && !spec.includes('/ha/') && !spec.includes('/adapter/'));
+      if (!ok) violations.push(`${relative(root, file)} → ${spec}`);
+    }
+  }
+  assert.deepEqual(violations, []);
+});
+
 test('no source file or Property Inspector page references an external URL', () => {
   const allowed = /^https?:\/\/www\.w3\.org\/2000\/svg/;
   const pages = join(root, 'plugin', 'com.ulanzi.hadeck.ulanziPlugin', 'property-inspector');

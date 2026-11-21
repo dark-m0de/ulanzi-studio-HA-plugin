@@ -4,11 +4,12 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { cpSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { cpSync, mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
+import { mdiLightbulb } from '@mdi/js';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const PLUGIN = 'com.ulanzi.hadeck.ulanziPlugin';
@@ -26,6 +27,12 @@ after(() => {
 
 test('the build output declares itself as an ES module', () => {
   assert.ok(existsSync(join(installDir, PLUGIN, 'dist', 'package.json')), 'dist/package.json is shipped');
+});
+
+test('the bundle ships the Material Design Icons and their license (feature 003, FR-004/FR-019)', () => {
+  const dist = join(installDir, PLUGIN, 'dist');
+  assert.match(readFileSync(join(dist, 'THIRD_PARTY_LICENSES.txt'), 'utf8'), /@mdi\/js@7\.4\.47/);
+  assert.ok(readFileSync(join(dist, 'app.js'), 'utf8').includes(mdiLightbulb), 'dist/app.js contains the mdiLightbulb path');
 });
 
 test('the installed bundle starts outside the repository and connects to Ulanzi Studio', async () => {

@@ -66,9 +66,15 @@ test('connection.save with haToken null keeps the stored token; without any toke
 
 test('connection.status reflects client status, hasToken and haUrl', async () => {
   h = await createHarness({ connect: false });
-  assert.deepEqual((await h.piRequest('connection.status', {})).payload, { status: 'unconfigured', hasToken: false, haUrl: '' });
+  assert.deepEqual((await h.piRequest('connection.status', {})).payload, { status: 'unconfigured', hasToken: false, haUrl: '', iconsAvailable: null });
   await h.connect();
-  assert.deepEqual((await h.piRequest('connection.status', {})).payload, { status: 'connected', hasToken: true, haUrl: h.server.url });
+  await waitFor(() => h.app.iconData.available === true, { message: 'icons loaded' });
+  assert.deepEqual((await h.piRequest('connection.status', {})).payload, {
+    status: 'connected',
+    hasToken: true,
+    haUrl: h.server.url,
+    iconsAvailable: true,
+  });
 });
 
 test('connection.changed is pushed to open PIs on status changes', async () => {

@@ -9,6 +9,7 @@ import { themeFor } from './theme.js';
  *   value?: string | number | null,
  *   unit?: string,
  *   badge?: string,
+ *   icon?: { path: string, color: string, valueColor?: string },
  * }} KeyRender
  */
 
@@ -32,11 +33,46 @@ export function truncate(text, max) {
 const text = (content, { y, size, weight = 'normal', fill }) =>
   `<text x="72" y="${y}" font-family="sans-serif" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="middle" dominant-baseline="middle">${escapeXml(content)}</text>`;
 
+// Icon layout (feature 003, data-model §5).
+const ICON_BG = '#1e293b';
+const ICON_FG = '#e2e8f0';
+const ICON_ACCENT = '#94a3b8';
+
+const round = (n) => Math.round(n * 10_000) / 10_000;
+const iconPathElement = ({ path, color }, x, y, size) =>
+  `<path d="${escapeXml(path)}" fill="${escapeXml(color)}" transform="translate(${x} ${y}) scale(${round(size / 24)})"/>`;
+
+/** @param {KeyRender} model */
+function iconKeySvg(model) {
+  const { icon } = model;
+  const hasValue = model.value !== undefined && model.value !== null && model.value !== '';
+  const label = model.label ? truncate(model.label, MAX_LABEL) : '';
+  const valueText = hasValue ? `${model.value}${model.unit ?? ''}` : '';
+  const valueFill = icon.valueColor ?? ICON_FG;
+  const parts = [`<rect width="144" height="144" rx="20" fill="${ICON_BG}"/>`];
+
+  if (hasValue && label) {
+    parts.push(iconPathElement(icon, 38, 6, 68));
+    parts.push(text(valueText, { y: 92, size: 26, weight: 'bold', fill: valueFill }));
+    parts.push(text(label, { y: 124, size: 18, fill: ICON_ACCENT }));
+  } else if (hasValue) {
+    parts.push(iconPathElement(icon, 38, 10, 68));
+    parts.push(text(valueText, { y: 110, size: 30, weight: 'bold', fill: valueFill }));
+  } else if (label) {
+    parts.push(iconPathElement(icon, 30, 10, 84));
+    parts.push(text(label, { y: 118, size: 20, fill: ICON_ACCENT }));
+  } else {
+    parts.push(iconPathElement(icon, 24, 24, 96));
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144" width="144" height="144">${parts.join('')}</svg>`;
+}
+
 /**
  * @param {KeyRender} model
  * @returns {string} SVG markup
  */
 export function keySvg(model) {
+  if (model.icon && typeof model.icon.path === 'string') return iconKeySvg(model);
   const colors = themeFor(model.style);
   const parts = [`<rect width="144" height="144" rx="20" fill="${colors.bg}"/>`];
   const hasValue = model.value !== undefined && model.value !== null && model.value !== '';

@@ -1,6 +1,6 @@
 {
   "name": "ulanzi-hadeck",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Home Assistant plugin for Ulanzi Deck with dial support",
   "type": "module",
@@ -15,6 +15,7 @@
     "dev:link": "node scripts/dev-link.mjs"
   },
   "dependencies": {
+    "@mdi/js": "7.4.47",
     "ulanzideck-api": "git+https://github.com/UlanziTechnology/plugin-common-node.git#9e478b2586a4ebdadbd590fc8f80519df18a8d32",
     "ws": "^8.18.0"
   },

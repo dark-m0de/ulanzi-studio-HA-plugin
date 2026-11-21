@@ -2,6 +2,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHarness } from '../../support/app-harness.js';
 import { waitFor, settle } from '../../support/wait.js';
+import { mdiPalette, mdiWeatherNight } from '@mdi/js';
 
 let h;
 afterEach(async () => {
@@ -28,15 +29,26 @@ test('onRun activates scenes and scripts and triggers automations', async () => 
   );
 });
 
-test('the key shows its label and confirms a successful run for about 1 s', async () => {
+test('the key shows its icon and label and confirms a successful run for about 1 s', async () => {
   h = await createHarness();
   const ctx = add('scene.evening');
-  assert.match(icon(ctx), />Run</);
+  assert.ok(icon(ctx).includes(`d="${mdiPalette}"`), 'HA scene icon (feature 003)');
   assert.match(icon(ctx), />Evening</);
   run();
   await waitFor(() => />OK</.test(icon(ctx)), { message: 'confirmation' });
+  assert.doesNotMatch(icon(ctx), /<path/, 'confirmation keeps the text layout (FR-014)');
   h.clock.tick(1000);
+  assert.ok(icon(ctx).includes(`d="${mdiPalette}"`));
+});
+
+test('a script with a custom HA icon shows it in the trigger colour; show icon off → text layout', async () => {
+  h = await createHarness();
+  const ctx = add('script.good_night');
+  assert.ok(icon(ctx).includes(`d="${mdiWeatherNight}"`), 'custom HA icon');
+  assert.match(icon(ctx), /fill="#a78bfa"/);
+  h.ud.emitAction('didReceiveSettings', 'scene', { settings: { entityId: 'script.good_night', showIcon: false } });
   assert.match(icon(ctx), />Run</);
+  assert.doesNotMatch(icon(ctx), /<path/);
 });
 
 test('an error shows an alert and logs a warning', async () => {

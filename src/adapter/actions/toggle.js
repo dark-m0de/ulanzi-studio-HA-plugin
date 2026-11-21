@@ -147,7 +147,7 @@ export class ToggleAction extends ActionBase {
   render({ force = false } = {}) {
     const model = this.isEditSource
       ? editModel(this.entity, this.settings, { t: this.app.t, ...this.#editValue() })
-      : toggleModel(this.entity, this.settings, { t: this.app.t, connected: this.connected });
+      : toggleModel(this.entity, this.settings, { t: this.app.t, connected: this.connected, icon: this.resolveIcon('toggle') });
     const icon = renderKeySvg(model);
     if (!force && icon === this.#lastIcon) return;
     this.#lastIcon = icon;

@@ -35,6 +35,7 @@
         <textarea class="uspi-item-value" name="data" id="data" rows="4" spellcheck="false" placeholder='{"brightness_pct": 100}'></textarea>
       </div>
       <div class="tip error hidden" id="dataError" data-localize>error.invalidJson</div>
+      <div id="hadeck-icon-section"></div>
     </form>
   </div>
 
@@ -63,6 +64,8 @@
     }
 
     HADeck.mountConnectionBlock('#hadeck-connection');
+    // Feature 003: optional icon (no "Show icon" switch; empty = text layout, FR-017).
+    HADeck.mountIconSection('#hadeck-icon-section', { service: true });
     HADeck.bindForm('#property-inspector', { onLoad: validateData });
     dataInput.addEventListener('input', validateData);
     $UD.connect(HADeck.ACTION_PREFIX + 'service');

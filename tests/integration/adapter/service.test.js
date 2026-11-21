@@ -61,3 +61,22 @@ test('an error result shows an alert and logs a warning; success flashes OK', as
   assert.match(warn.args[0], /light\.turn_on/);
   assert.doesNotMatch(warn.args[0], /light\.desk/);
 });
+
+// --- Feature 003, US4: service keys with a chosen icon (T051) -----------------------------------
+
+import { keySvg } from '../../../src/domain/render/key-svg.js';
+import { mdiLightbulbGroup } from '@mdi/js';
+
+test('a service key with an icon name shows it with the label in the trigger colour', async () => {
+  h = await createHarness();
+  const ctx = add({ label: 'All on', domain: 'light', service: 'turn_on', icon: 'mdi:lightbulb-group' });
+  assert.ok(icon(ctx).includes(`d="${mdiLightbulbGroup}"`));
+  assert.match(icon(ctx), /fill="#a78bfa"/);
+  assert.match(icon(ctx), />All on</);
+});
+
+test('a service key without an icon name renders exactly as in 0.2.0', async () => {
+  h = await createHarness();
+  const ctx = add({ label: 'All on', domain: 'light', service: 'turn_on' });
+  assert.equal(icon(ctx), keySvg({ style: 'trigger', status: 'Run', label: 'All on' }));
+});

@@ -34,6 +34,8 @@
                data-localize="pi.offText.placeholder" placeholder="pi.offText.placeholder">
       </div>
 
+      <div id="hadeck-icon-section"></div>
+
       <div class="uspi-heading" data-localize>pi.longPress.heading</div>
       <div class="uspi-item">
         <div class="uspi-item-label" data-localize>pi.longPress</div>
@@ -106,6 +108,8 @@
     }
 
     HADeck.mountConnectionBlock('#hadeck-connection');
+    // Feature 003: icon, on/off colours, "Show icon" (before bindForm so the fields exist).
+    HADeck.mountIconSection('#hadeck-icon-section', { showToggle: true, offColor: true, entityInput: document.getElementById('entityId') });
     HADeck.bindForm('#property-inspector', {
       onLoad: () => {
         if (!modeSelect.value) modeSelect.value = 'edit';

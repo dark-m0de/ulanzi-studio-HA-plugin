@@ -7,7 +7,12 @@ const TRIGGER_DOMAINS = new Set(['scene', 'script', 'automation']);
 
 export class TriggerAction extends KeyAction {
   model() {
-    return triggerModel(this.entity, this.settings, { t: this.app.t, connected: this.connected, confirming: this.confirming });
+    return triggerModel(this.entity, this.settings, {
+      t: this.app.t,
+      connected: this.connected,
+      confirming: this.confirming,
+      icon: this.resolveIcon('trigger'),
+    });
   }
 
   onRun() {

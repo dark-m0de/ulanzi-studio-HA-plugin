@@ -32,6 +32,7 @@
         <input class="uspi-item-value" type="number" name="warnBelow" step="any">
       </div>
       <div class="hadeck-hint" data-localize>pi.sensor.warnHint</div>
+      <div id="hadeck-icon-section"></div>
     </form>
   </div>
 
@@ -43,6 +44,8 @@
   <script src="shared.js"></script>
   <script>
     HADeck.mountConnectionBlock('#hadeck-connection');
+    // Feature 003: icon section (before bindForm so the fields exist).
+    HADeck.mountIconSection('#hadeck-icon-section', { showToggle: true, defaultColor: '#5eead4', entityInput: document.getElementById('entityId') });
     HADeck.bindForm('#property-inspector');
     HADeck.mountEntityPicker(document.getElementById('entityId'), { domains: ['sensor'] });
     $UD.connect(HADeck.ACTION_PREFIX + 'sensor');
