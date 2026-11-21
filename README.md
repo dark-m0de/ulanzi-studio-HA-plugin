@@ -1,5 +1,7 @@
 # HA Deck – Home Assistant for Ulanzi Deck
 
+![HA Deck on an Ulanzi D200X: keys showing live Home Assistant states and icons, dial display with brightness, volume and temperature](docs/readme-banner.png)
+
 Control [Home Assistant](https://www.home-assistant.io/) from the keys **and the rotary dials** of
 an Ulanzi Deck. Built on the official
 [UlanziDeckPlugin-SDK](https://github.com/UlanziTechnology/UlanziDeckPlugin-SDK).
@@ -107,6 +109,10 @@ npm run package     # builds com.ulanzi.hadeck.ulanziPlugin.zip (includes LICENS
 - Specification, plan and tasks live in [`specs/001-ha-deck-plugin`](specs/001-ha-deck-plugin)
   ([spec-kit](https://github.com/github/spec-kit)); project principles in
   [`.specify/memory/constitution.md`](.specify/memory/constitution.md).
+- Listing images: `node marketing/generate.mjs` renders the Ulanzi Workshop cover and banners
+  (`marketing/out/`) and the README image (`docs/readme-banner.png`) with the plugin's own key and
+  dial renderers. It needs a Chromium (Playwright's headless shell or Chrome; override with
+  `CHROME_PATH`). Listing texts are in [`marketing/listing-texts.md`](marketing/listing-texts.md).
 
 ### Continuous integration and releases
 
